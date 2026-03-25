@@ -1,0 +1,1408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Forge AI — Build any brand. From any idea.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0A0A0F;--bg2:#0E0E15;--card:#1A1A2E;--card2:#16162A;
+  --gold:#C8A84E;--gold2:#D4B85C;--gold-dim:rgba(200,168,78,.15);--gold-glow:rgba(200,168,78,.08);
+  --text:#E8E4DD;--text2:#9B97A0;--text3:#5A5666;
+  --red:#E74C3C;--green:#2ECC71;--blue:#3498DB;--orange:#F39C12;
+  --border:#1E1E35;--border2:#2A2A45;
+  --font:'Plus Jakarta Sans',system-ui,sans-serif;
+  --font-display:'Playfair Display',Georgia,serif;
+  --radius:12px;--radius-sm:8px;--radius-xs:6px;
+  --shadow:0 4px 24px rgba(0,0,0,.4);--shadow-lg:0 8px 48px rgba(0,0,0,.6);
+  --transition:all .25s cubic-bezier(.4,0,.2,1);
+}
+html{font-size:15px;scroll-behavior:smooth}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;overflow:hidden;-webkit-font-smoothing:antialiased}
+
+/* ═══ Scrollbar ═══ */
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:var(--gold-dim)}
+
+/* ═══ Layout Shell ═══ */
+.app{display:flex;height:100vh;width:100vw}
+.sidebar{width:240px;min-width:240px;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;z-index:100;transition:var(--transition)}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;position:relative}
+.main-header{height:56px;min-height:56px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 24px;background:var(--bg2)}
+.main-content{flex:1;overflow-y:auto;padding:24px;position:relative}
+
+/* ═══ Logo ═══ */
+.logo{padding:20px 20px 16px;border-bottom:1px solid var(--border)}
+.logo-mark{display:flex;align-items:center;gap:12px;text-decoration:none}
+.logo-icon{width:36px;height:36px;position:relative}
+.logo-icon svg{width:100%;height:100%}
+.logo-text{font-family:var(--font-display);font-size:1.35rem;font-weight:700;color:var(--text);letter-spacing:-.02em}
+.logo-text span{color:var(--gold)}
+.logo-tagline{font-size:.65rem;color:var(--text3);margin-top:2px;letter-spacing:.08em;text-transform:uppercase}
+
+/* ═══ Navigation ═══ */
+.nav{flex:1;padding:12px 10px;overflow-y:auto}
+.nav-section{margin-bottom:8px}
+.nav-label{font-size:.6rem;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;padding:12px 12px 6px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:var(--radius-sm);cursor:pointer;transition:var(--transition);font-size:.85rem;font-weight:500;color:var(--text2);position:relative;user-select:none}
+.nav-item:hover{background:var(--gold-glow);color:var(--text)}
+.nav-item.active{background:var(--gold-dim);color:var(--gold)}
+.nav-item.active::before{content:'';position:absolute;left:0;top:50%;transform:translateY(-50%);width:3px;height:20px;background:var(--gold);border-radius:0 3px 3px 0}
+.nav-item svg{width:18px;height:18px;opacity:.7;flex-shrink:0}
+.nav-item.active svg{opacity:1}
+.nav-badge{margin-left:auto;font-size:.6rem;padding:2px 7px;border-radius:10px;font-weight:700;letter-spacing:.04em}
+.nav-badge.soon{background:var(--border);color:var(--text3)}
+.nav-badge.count{background:var(--gold-dim);color:var(--gold)}
+
+/* ═══ Brand Selector (sidebar footer) ═══ */
+.brand-selector{padding:12px;border-top:1px solid var(--border)}
+.brand-current{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--card);border-radius:var(--radius-sm);cursor:pointer;transition:var(--transition)}
+.brand-current:hover{background:var(--card2);border-color:var(--border2)}
+.brand-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.brand-name{flex:1;font-size:.8rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.brand-chevron{color:var(--text3);font-size:.7rem}
+.brand-dropdown{position:absolute;bottom:70px;left:12px;right:12px;background:var(--card);border:1px solid var(--border2);border-radius:var(--radius);box-shadow:var(--shadow-lg);overflow:hidden;z-index:200;display:none}
+.brand-dropdown.open{display:block;animation:slideUp .2s ease}
+.brand-option{display:flex;align-items:center;gap:10px;padding:10px 14px;cursor:pointer;transition:var(--transition);font-size:.8rem}
+.brand-option:hover{background:var(--gold-glow)}
+.brand-option.active{color:var(--gold)}
+.brand-option .brand-dot{width:8px;height:8px}
+.brand-add{border-top:1px solid var(--border);color:var(--gold);font-weight:600}
+.brand-add svg{width:14px;height:14px}
+
+/* ═══ Page Header ═══ */
+.page-title{font-family:var(--font-display);font-size:1.5rem;font-weight:600;letter-spacing:-.01em}
+.page-subtitle{font-size:.8rem;color:var(--text2)}
+.header-actions{display:flex;gap:8px;align-items:center}
+
+/* ═══ Buttons ═══ */
+.btn{display:inline-flex;align-items:center;gap:8px;padding:8px 18px;border-radius:var(--radius-sm);font-family:var(--font);font-size:.8rem;font-weight:600;border:none;cursor:pointer;transition:var(--transition);text-decoration:none;white-space:nowrap}
+.btn svg{width:16px;height:16px}
+.btn-gold{background:var(--gold);color:#0A0A0F}.btn-gold:hover{background:var(--gold2);transform:translateY(-1px);box-shadow:0 4px 16px rgba(200,168,78,.3)}
+.btn-outline{background:transparent;border:1px solid var(--border2);color:var(--text2)}.btn-outline:hover{border-color:var(--gold);color:var(--gold);background:var(--gold-glow)}
+.btn-ghost{background:transparent;color:var(--text2)}.btn-ghost:hover{color:var(--text);background:var(--gold-glow)}
+.btn-sm{padding:6px 12px;font-size:.75rem}
+.btn-icon{width:36px;height:36px;padding:0;display:flex;align-items:center;justify-content:center;border-radius:var(--radius-sm);background:transparent;border:1px solid var(--border);color:var(--text2);cursor:pointer;transition:var(--transition)}
+.btn-icon:hover{border-color:var(--gold);color:var(--gold)}
+
+/* ═══ Cards ═══ */
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;transition:var(--transition)}
+.card:hover{border-color:var(--border2)}
+.card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.card-title{font-weight:700;font-size:.9rem}
+
+/* ═══ Inputs ═══ */
+.input-group{margin-bottom:16px}
+.input-group label{display:block;font-size:.75rem;font-weight:600;color:var(--text2);margin-bottom:6px;letter-spacing:.02em}
+input[type="text"],input[type="url"],input[type="email"],input[type="number"],textarea,select{
+  width:100%;padding:10px 14px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);
+  color:var(--text);font-family:var(--font);font-size:.85rem;transition:var(--transition);outline:none}
+input:focus,textarea:focus,select:focus{border-color:var(--gold);box-shadow:0 0 0 3px var(--gold-dim)}
+textarea{resize:vertical;min-height:80px}
+select{cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239B97A0' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center}
+select option{background:var(--card);color:var(--text)}
+
+/* ═══ Tabs ═══ */
+.tabs{display:flex;gap:4px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);padding:3px}
+.tab{padding:7px 16px;border-radius:var(--radius-xs);font-size:.78rem;font-weight:600;cursor:pointer;transition:var(--transition);color:var(--text2)}
+.tab:hover{color:var(--text)}
+.tab.active{background:var(--gold-dim);color:var(--gold)}
+
+/* ═══ Tags ═══ */
+.tag{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:20px;font-size:.68rem;font-weight:600}
+.tag-awareness{background:rgba(52,152,219,.15);color:#5DADE2}
+.tag-interest{background:rgba(46,204,113,.15);color:#58D68D}
+.tag-desire{background:rgba(243,156,18,.15);color:#F5B041}
+.tag-action{background:rgba(231,76,60,.15);color:#EC7063}
+
+/* ═══ Empty States ═══ */
+.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 20px;text-align:center}
+.empty-icon{width:80px;height:80px;border-radius:50%;background:var(--gold-glow);display:flex;align-items:center;justify-content:center;margin-bottom:20px}
+.empty-icon svg{width:36px;height:36px;color:var(--gold);opacity:.6}
+.empty-title{font-family:var(--font-display);font-size:1.2rem;font-weight:600;margin-bottom:8px}
+.empty-text{font-size:.85rem;color:var(--text2);max-width:360px;line-height:1.6;margin-bottom:20px}
+
+/* ═══ Coming Soon ═══ */
+.coming-soon{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;min-height:400px;text-align:center}
+.coming-soon-badge{font-size:.6rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--gold);background:var(--gold-dim);padding:4px 14px;border-radius:20px;margin-bottom:20px}
+.coming-soon h2{font-family:var(--font-display);font-size:1.8rem;margin-bottom:10px}
+.coming-soon p{color:var(--text2);max-width:400px;line-height:1.6;font-size:.9rem}
+
+/* ═══ Skeleton Loading ═══ */
+@keyframes shimmer{0%{background-position:-200px 0}100%{background-position:calc(200px + 100%) 0}}
+.skeleton{background:linear-gradient(90deg,var(--card) 0,var(--border) 50%,var(--card) 100%);background-size:200px 100%;animation:shimmer 1.5s ease-in-out infinite;border-radius:var(--radius-sm)}
+.skeleton-line{height:14px;margin-bottom:8px;border-radius:4px}
+.skeleton-line.w60{width:60%}.skeleton-line.w80{width:80%}.skeleton-line.w40{width:40%}
+
+/* ═══ Studio Layout ═══ */
+.studio{display:grid;grid-template-columns:320px 1fr 300px;gap:1px;height:100%;background:var(--border);margin:-24px;min-height:calc(100vh - 56px)}
+.studio-panel{background:var(--bg);overflow-y:auto;padding:20px}
+.studio-panel-header{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text3);margin-bottom:16px;display:flex;align-items:center;justify-content:space-between}
+
+/* Source Panel */
+.source-input{display:flex;gap:8px;margin-bottom:20px}
+.source-input input{flex:1}
+.source-tabs{margin-bottom:20px}
+
+/* Script Editor */
+.script-editor{display:flex;flex-direction:column;height:100%}
+.script-controls{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.script-section{margin-bottom:16px;position:relative}
+.script-section-label{display:flex;align-items:center;justify-content:space-between;font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px;padding:0 2px}
+.script-section-label .label-text{display:flex;align-items:center;gap:6px}
+.script-section-label .dot{width:8px;height:8px;border-radius:50%}
+.script-section-label .dot.hook{background:var(--gold)}
+.script-section-label .dot.body{background:var(--blue)}
+.script-section-label .dot.cta{background:var(--green)}
+.script-section textarea{background:var(--card);border:1px solid var(--border);font-size:.88rem;line-height:1.7;padding:14px;min-height:60px}
+.script-section.hook textarea{border-left:3px solid var(--gold)}
+.script-section.body textarea{border-left:3px solid var(--blue)}
+.script-section.cta textarea{border-left:3px solid var(--green)}
+.script-meta{display:flex;gap:16px;padding:12px 0;border-top:1px solid var(--border);font-size:.75rem;color:var(--text3);margin-top:auto}
+.script-meta span{display:flex;align-items:center;gap:4px}
+.script-actions{display:flex;gap:8px;padding-top:12px;border-top:1px solid var(--border)}
+
+/* Preview Panel */
+.preview-card{background:var(--card);border-radius:var(--radius);overflow:hidden;margin-bottom:16px}
+.preview-phone{width:100%;aspect-ratio:9/16;background:var(--bg2);display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;max-height:380px}
+.preview-phone .phone-text{padding:20px;text-align:center}
+.preview-phone .hook-preview{font-family:var(--font-display);font-size:1.1rem;font-weight:700;color:var(--gold);margin-bottom:12px;line-height:1.3}
+.preview-phone .body-preview{font-size:.78rem;color:var(--text2);line-height:1.5}
+.preview-platform-icons{display:flex;gap:6px;margin-bottom:12px}
+.preview-platform-icon{width:28px;height:28px;border-radius:var(--radius-xs);background:var(--card);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:.65rem;cursor:pointer;transition:var(--transition)}
+.preview-platform-icon:hover,.preview-platform-icon.active{border-color:var(--gold);color:var(--gold)}
+
+/* ═══ Calendar ═══ */
+.calendar-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+.calendar-nav{display:flex;align-items:center;gap:12px}
+.calendar-month{font-family:var(--font-display);font-size:1.2rem;font-weight:600;min-width:180px;text-align:center}
+.calendar-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;background:var(--border);border-radius:var(--radius);overflow:hidden}
+.calendar-day-header{background:var(--card);padding:10px;text-align:center;font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text3)}
+.calendar-day{background:var(--bg2);min-height:100px;padding:8px;cursor:pointer;transition:var(--transition);position:relative}
+.calendar-day:hover{background:var(--card)}
+.calendar-day.today{box-shadow:inset 0 0 0 1px var(--gold)}
+.calendar-day.other-month{opacity:.3}
+.calendar-date{font-size:.75rem;font-weight:600;margin-bottom:6px}
+.calendar-day.today .calendar-date{color:var(--gold)}
+.calendar-event{font-size:.62rem;padding:3px 6px;border-radius:4px;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer}
+.calendar-event.awareness{background:rgba(52,152,219,.15);color:#5DADE2;border-left:2px solid #3498DB}
+.calendar-event.interest{background:rgba(46,204,113,.15);color:#58D68D;border-left:2px solid #2ECC71}
+.calendar-event.desire{background:rgba(243,156,18,.15);color:#F5B041;border-left:2px solid #F39C12}
+.calendar-event.action{background:rgba(231,76,60,.15);color:#EC7063;border-left:2px solid #E74C3C}
+
+/* ═══ Asset Library ═══ */
+.assets-toolbar{display:flex;gap:8px;align-items:center;margin-bottom:20px}
+.assets-toolbar input{flex:1;max-width:300px}
+.assets-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px}
+.asset-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;cursor:pointer;transition:var(--transition)}
+.asset-card:hover{border-color:var(--border2);transform:translateY(-2px);box-shadow:var(--shadow)}
+.asset-thumb{width:100%;aspect-ratio:16/9;background:var(--bg2);display:flex;align-items:center;justify-content:center}
+.asset-thumb svg{width:32px;height:32px;color:var(--text3)}
+.asset-info{padding:12px}
+.asset-name{font-size:.78rem;font-weight:600;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.asset-meta{font-size:.68rem;color:var(--text3);display:flex;justify-content:space-between}
+
+/* ═══ Queue ═══ */
+.queue-list{display:flex;flex-direction:column;gap:8px}
+.queue-item{display:flex;align-items:center;gap:16px;background:var(--card);border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px 18px}
+.queue-status{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.queue-status.pending{background:var(--text3)}
+.queue-status.processing{background:var(--blue);animation:pulse 1.5s infinite}
+.queue-status.complete{background:var(--green)}
+.queue-status.failed{background:var(--red)}
+.queue-info{flex:1}
+.queue-type{font-size:.82rem;font-weight:600}
+.queue-time{font-size:.7rem;color:var(--text3)}
+.queue-progress{width:120px}
+.queue-bar{height:4px;background:var(--border);border-radius:2px;overflow:hidden}
+.queue-bar-fill{height:100%;background:var(--gold);border-radius:2px;transition:width .5s ease}
+
+/* ═══ Brand Settings ═══ */
+.settings-grid{display:grid;grid-template-columns:280px 1fr;gap:24px;height:100%}
+.brand-list{display:flex;flex-direction:column;gap:8px}
+.brand-list-item{display:flex;align-items:center;gap:12px;padding:14px 16px;background:var(--card);border:1px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;transition:var(--transition)}
+.brand-list-item:hover{border-color:var(--border2)}
+.brand-list-item.active{border-color:var(--gold);background:var(--gold-glow)}
+.brand-list-color{width:12px;height:12px;border-radius:50%}
+.brand-list-name{font-size:.85rem;font-weight:600}
+.brand-list-niche{font-size:.7rem;color:var(--text3)}
+.brand-form{max-width:640px}
+.brand-form-section{margin-bottom:28px}
+.brand-form-section h3{font-family:var(--font-display);font-size:1.05rem;margin-bottom:16px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.color-input{display:flex;align-items:center;gap:10px}
+.color-input input[type="color"]{width:40px;height:32px;border:none;border-radius:var(--radius-xs);cursor:pointer;background:none;padding:0}
+.color-input span{font-size:.8rem;color:var(--text2)}
+
+/* ═══ Modals ═══ */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(4px);z-index:500;display:none;align-items:center;justify-content:center}
+.modal-overlay.open{display:flex;animation:fadeIn .2s ease}
+.modal{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);width:90%;max-width:540px;max-height:85vh;overflow-y:auto;box-shadow:var(--shadow-lg)}
+.modal-header{display:flex;align-items:center;justify-content:space-between;padding:20px 24px;border-bottom:1px solid var(--border)}
+.modal-header h3{font-family:var(--font-display);font-size:1.1rem}
+.modal-body{padding:24px}
+.modal-footer{display:flex;justify-content:flex-end;gap:8px;padding:16px 24px;border-top:1px solid var(--border)}
+
+/* ═══ Toast Notifications ═══ */
+.toast-container{position:fixed;bottom:24px;right:24px;z-index:600;display:flex;flex-direction:column;gap:8px}
+.toast{padding:12px 18px;background:var(--card);border:1px solid var(--border2);border-radius:var(--radius-sm);font-size:.82rem;box-shadow:var(--shadow);animation:slideIn .3s ease;display:flex;align-items:center;gap:10px;max-width:380px}
+.toast.success{border-left:3px solid var(--green)}
+.toast.error{border-left:3px solid var(--red)}
+.toast.info{border-left:3px solid var(--blue)}
+
+/* ═══ Animations ═══ */
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes slideUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes slideIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.page-section{display:none}
+.page-section.active{display:block;animation:fadeIn .25s ease}
+.studio-section{display:none}
+.studio-section.active{display:grid;animation:fadeIn .2s ease}
+
+/* ═══ Responsive ═══ */
+@media(max-width:1100px){
+  .studio{grid-template-columns:1fr;grid-template-rows:auto 1fr auto}
+  .settings-grid{grid-template-columns:1fr}
+}
+@media(max-width:768px){
+  .sidebar{position:fixed;left:-240px;height:100vh;z-index:300;box-shadow:var(--shadow-lg)}
+  .sidebar.open{left:0}
+  .mobile-toggle{display:flex !important}
+  .calendar-grid{grid-template-columns:repeat(7,1fr)}
+  .calendar-day{min-height:60px}
+  .form-row{grid-template-columns:1fr}
+}
+.mobile-toggle{display:none;align-items:center;justify-content:center;width:36px;height:36px;background:transparent;border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text2);cursor:pointer}
+
+/* ═══ Forge Glow Effect ═══ */
+.forge-glow{position:absolute;top:-200px;right:-200px;width:500px;height:500px;background:radial-gradient(circle,rgba(200,168,78,.04) 0%,transparent 70%);pointer-events:none;z-index:0}
+</style>
+</head>
+<body>
+
+<div class="app" id="app">
+  <!-- ═══ Sidebar ═══ -->
+  <aside class="sidebar" id="sidebar">
+    <div class="logo">
+      <a class="logo-mark" href="#">
+        <div class="logo-icon">
+          <svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M18 2L6 10v16l12 8 12-8V10L18 2z" fill="none" stroke="#C8A84E" stroke-width="1.5" opacity=".3"/>
+            <path d="M11 22l3-10h2l2 6 2-6h2l3 10" stroke="#C8A84E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M18 6l-1-3M18 6l1-3M16 5h4" stroke="#C8A84E" stroke-width="1.5" stroke-linecap="round" opacity=".6"/>
+            <circle cx="18" cy="3" r="1" fill="#C8A84E" opacity=".4"/>
+          </svg>
+        </div>
+        <div>
+          <div class="logo-text">Forge <span>AI</span></div>
+          <div class="logo-tagline">Build any brand</div>
+        </div>
+      </a>
+    </div>
+
+    <nav class="nav">
+      <div class="nav-section">
+        <div class="nav-label">Create</div>
+        <div class="nav-item active" data-page="studio">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/></svg>
+          Studio
+        </div>
+        <div class="nav-item" data-page="builder">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+          Builder
+          <span class="nav-badge soon">Soon</span>
+        </div>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-label">Manage</div>
+        <div class="nav-item" data-page="calendar">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          Calendar
+        </div>
+        <div class="nav-item" data-page="queue">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/><line x1="4" y1="4" x2="9" y2="9"/></svg>
+          Queue
+          <span class="nav-badge count" id="queue-count" style="display:none">0</span>
+        </div>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-label">Insights</div>
+        <div class="nav-item" data-page="trends">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          Trends
+          <span class="nav-badge soon">Soon</span>
+        </div>
+        <div class="nav-item" data-page="analytics">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+          Analytics
+          <span class="nav-badge soon">Soon</span>
+        </div>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-label">Library</div>
+        <div class="nav-item" data-page="assets">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M13 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V9z"/><polyline points="13 2 13 9 20 9"/></svg>
+          Assets
+        </div>
+        <div class="nav-item" data-page="settings">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+          Settings
+        </div>
+      </div>
+    </nav>
+
+    <div class="brand-selector" style="position:relative">
+      <div class="brand-current" id="brand-toggle">
+        <div class="brand-dot" id="brand-dot" style="background:#C8A84E"></div>
+        <div class="brand-name" id="brand-name-display">Select Brand</div>
+        <div class="brand-chevron">&#9662;</div>
+      </div>
+      <div class="brand-dropdown" id="brand-dropdown"></div>
+    </div>
+  </aside>
+
+  <!-- ═══ Main Content ═══ -->
+  <div class="main">
+    <header class="main-header">
+      <div style="display:flex;align-items:center;gap:12px">
+        <button class="mobile-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+        <div>
+          <div class="page-title" id="page-title">Content Studio</div>
+        </div>
+      </div>
+      <div class="header-actions" id="header-actions"></div>
+    </header>
+
+    <div class="main-content" id="main-content">
+      <div class="forge-glow"></div>
+
+      <!-- ═══ STUDIO ═══ -->
+      <section class="page-section studio-section active" id="page-studio">
+        <!-- Source Panel -->
+        <div class="studio-panel" id="source-panel">
+          <div class="studio-panel-header">
+            <span>Source</span>
+          </div>
+          <div class="tabs source-tabs" style="margin-bottom:16px">
+            <div class="tab active" data-source="video">From Video</div>
+            <div class="tab" data-source="template">Template</div>
+            <div class="tab" data-source="scratch">Scratch</div>
+          </div>
+
+          <!-- From Video -->
+          <div id="source-video" class="source-mode">
+            <div class="source-input">
+              <input type="url" id="extract-url" placeholder="Paste any video URL...">
+              <button class="btn btn-gold" id="extract-btn" onclick="forgeFromVideo()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                Extract
+              </button>
+            </div>
+            <div id="intelligence-display"></div>
+          </div>
+
+          <!-- From Template -->
+          <div id="source-template" class="source-mode" style="display:none">
+            <div id="template-list"></div>
+          </div>
+
+          <!-- From Scratch -->
+          <div id="source-scratch" class="source-mode" style="display:none">
+            <div class="input-group">
+              <label>What do you want to create?</label>
+              <textarea id="scratch-prompt" placeholder="Describe the content you want... e.g., 'A 60-second video about why our product is better than the competition'" rows="4"></textarea>
+            </div>
+            <div class="input-group">
+              <label>Funnel Stage</label>
+              <select id="scratch-funnel">
+                <option value="awareness">Awareness — Top of funnel</option>
+                <option value="interest">Interest — Building curiosity</option>
+                <option value="desire">Desire — Creating want</option>
+                <option value="action">Action — Drive conversion</option>
+              </select>
+            </div>
+            <div class="input-group">
+              <label>Length</label>
+              <select id="scratch-length">
+                <option value="15s">15 seconds</option>
+                <option value="30s">30 seconds</option>
+                <option value="60s" selected>60 seconds</option>
+                <option value="90s">90 seconds</option>
+                <option value="3min">3 minutes</option>
+              </select>
+            </div>
+            <button class="btn btn-gold" style="width:100%" onclick="forgeFromScratch()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+              Forge Content
+            </button>
+          </div>
+        </div>
+
+        <!-- Editor Panel -->
+        <div class="studio-panel" id="editor-panel">
+          <div class="studio-panel-header">
+            <span>Script Editor</span>
+            <div style="display:flex;gap:6px">
+              <select id="editor-tone" style="padding:4px 8px;font-size:.7rem;width:auto">
+                <option value="casual">Casual</option>
+                <option value="professional">Professional</option>
+                <option value="energetic">Energetic</option>
+                <option value="inspirational">Inspirational</option>
+                <option value="educational">Educational</option>
+                <option value="entertaining">Entertaining</option>
+              </select>
+            </div>
+          </div>
+          <div id="editor-content">
+            <div class="empty-state">
+              <div class="empty-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+              </div>
+              <div class="empty-title">Ready to Forge</div>
+              <div class="empty-text">Paste a video URL, pick a template, or describe what you want. Forge will create scroll-stopping content tuned to your brand.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Preview Panel -->
+        <div class="studio-panel" id="preview-panel">
+          <div class="studio-panel-header">
+            <span>Preview</span>
+          </div>
+          <div id="preview-content">
+            <div class="preview-card">
+              <div class="preview-phone">
+                <div class="phone-text">
+                  <div style="color:var(--text3);font-size:.8rem">Preview will appear here</div>
+                </div>
+              </div>
+            </div>
+            <div class="preview-platform-icons">
+              <div class="preview-platform-icon active" title="TikTok">TT</div>
+              <div class="preview-platform-icon" title="Instagram Reels">IG</div>
+              <div class="preview-platform-icon" title="YouTube Shorts">YT</div>
+              <div class="preview-platform-icon" title="Twitter/X">X</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ═══ BUILDER (Coming Soon) ═══ -->
+      <section class="page-section" id="page-builder">
+        <div class="coming-soon">
+          <div class="coming-soon-badge">Coming Soon</div>
+          <h2>Brand Builder</h2>
+          <p>A guided 5-step journey from idea to brand. Niche research, brand identity, product sourcing, store setup, and content strategy — all powered by AI.</p>
+        </div>
+      </section>
+
+      <!-- ═══ CALENDAR ═══ -->
+      <section class="page-section" id="page-calendar">
+        <div class="calendar-header">
+          <div class="calendar-nav">
+            <button class="btn-icon" onclick="changeMonth(-1)">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+            </button>
+            <div class="calendar-month" id="calendar-month"></div>
+            <button class="btn-icon" onclick="changeMonth(1)">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+            </button>
+          </div>
+          <button class="btn btn-outline" onclick="changeMonth(0)">Today</button>
+        </div>
+        <div class="calendar-grid" id="calendar-grid"></div>
+      </section>
+
+      <!-- ═══ QUEUE ═══ -->
+      <section class="page-section" id="page-queue">
+        <div id="queue-content">
+          <div class="empty-state">
+            <div class="empty-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/></svg>
+            </div>
+            <div class="empty-title">No Jobs Yet</div>
+            <div class="empty-text">When you forge content, creation jobs will appear here with real-time progress tracking.</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ═══ TRENDS (Coming Soon) ═══ -->
+      <section class="page-section" id="page-trends">
+        <div class="coming-soon">
+          <div class="coming-soon-badge">Coming Soon</div>
+          <h2>Trend Scanner</h2>
+          <p>Daily automated scans of what's working in your niche. Monitor competitors, identify viral content, and forge trending pieces with one click.</p>
+        </div>
+      </section>
+
+      <!-- ═══ ANALYTICS (Coming Soon) ═══ -->
+      <section class="page-section" id="page-analytics">
+        <div class="coming-soon">
+          <div class="coming-soon-badge">Coming Soon</div>
+          <h2>Analytics Dashboard</h2>
+          <p>Track performance across every platform. See what's working, double down on winners, and let Forge learn your audience over time.</p>
+        </div>
+      </section>
+
+      <!-- ═══ ASSETS ═══ -->
+      <section class="page-section" id="page-assets">
+        <div class="assets-toolbar">
+          <input type="text" id="assets-search" placeholder="Search assets...">
+          <select id="assets-filter" style="width:auto">
+            <option value="all">All Types</option>
+            <option value="script">Scripts</option>
+            <option value="video">Videos</option>
+            <option value="image">Images</option>
+            <option value="audio">Audio</option>
+          </select>
+        </div>
+        <div class="assets-grid" id="assets-grid">
+          <div class="empty-state" style="grid-column:1/-1">
+            <div class="empty-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M13 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V9z"/><polyline points="13 2 13 9 20 9"/></svg>
+            </div>
+            <div class="empty-title">No Assets Yet</div>
+            <div class="empty-text">Your generated content — scripts, videos, images, and voiceovers — will be organized here.</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ═══ SETTINGS ═══ -->
+      <section class="page-section" id="page-settings">
+        <div class="settings-grid">
+          <div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+              <div class="card-title">Brands</div>
+              <button class="btn btn-gold btn-sm" onclick="openNewBrandModal()">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                New Brand
+              </button>
+            </div>
+            <div class="brand-list" id="settings-brand-list"></div>
+          </div>
+          <div id="brand-form-container">
+            <div class="empty-state">
+              <div class="empty-title">Select a Brand</div>
+              <div class="empty-text">Choose a brand from the list or create a new one to edit its profile.</div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ New Brand Modal ═══ -->
+<div class="modal-overlay" id="modal-new-brand">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Create New Brand</h3>
+      <button class="btn-icon" onclick="closeModal('modal-new-brand')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="input-group">
+        <label>Brand Name *</label>
+        <input type="text" id="new-brand-name" placeholder="e.g., Urban Edge">
+      </div>
+      <div class="input-group">
+        <label>Tagline</label>
+        <input type="text" id="new-brand-tagline" placeholder="e.g., Street culture, elevated">
+      </div>
+      <div class="form-row">
+        <div class="input-group">
+          <label>Niche</label>
+          <select id="new-brand-niche">
+            <option value="">Select niche...</option>
+            <option value="ecommerce">E-commerce</option>
+            <option value="content_creator">Content Creator</option>
+            <option value="restaurant">Restaurant</option>
+            <option value="saas">SaaS</option>
+            <option value="trades">Trades</option>
+            <option value="kids_content">Kids Content</option>
+            <option value="fitness">Fitness</option>
+            <option value="education">Education</option>
+            <option value="real_estate">Real Estate</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+        <div class="input-group">
+          <label>Stage</label>
+          <select id="new-brand-stage">
+            <option value="idea">Just an idea</option>
+            <option value="starting">Just starting</option>
+            <option value="established">Established</option>
+            <option value="scaling">Scaling</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="input-group">
+          <label>Primary Color</label>
+          <div class="color-input">
+            <input type="color" id="new-brand-color1" value="#C8A84E">
+            <span id="new-brand-color1-hex">#C8A84E</span>
+          </div>
+        </div>
+        <div class="input-group">
+          <label>Secondary Color</label>
+          <div class="color-input">
+            <input type="color" id="new-brand-color2" value="#1A1A2E">
+            <span id="new-brand-color2-hex">#1A1A2E</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-new-brand')">Cancel</button>
+      <button class="btn btn-gold" onclick="createNewBrand()">Create Brand</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ Schedule Modal ═══ -->
+<div class="modal-overlay" id="modal-schedule">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Schedule Content</h3>
+      <button class="btn-icon" onclick="closeModal('modal-schedule')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="input-group">
+        <label>Platform</label>
+        <select id="schedule-platform">
+          <option value="tiktok">TikTok</option>
+          <option value="instagram">Instagram</option>
+          <option value="youtube">YouTube</option>
+          <option value="twitter">Twitter/X</option>
+        </select>
+      </div>
+      <div class="input-group">
+        <label>Date & Time</label>
+        <input type="datetime-local" id="schedule-datetime">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-schedule')">Cancel</button>
+      <button class="btn btn-gold" onclick="scheduleContent()">Schedule</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast Container -->
+<div class="toast-container" id="toast-container"></div>
+
+<script>
+// ═══════════════════════════════════════════
+// Forge AI — Frontend Application
+// ═══════════════════════════════════════════
+
+const API = '';
+const store = {
+  brands: [],
+  activeBrand: null,
+  templates: [],
+  currentContent: null,
+  currentScript: null,
+  calendarDate: new Date(),
+  scheduledPosts: [],
+  assets: [],
+  jobs: []
+};
+
+// ─── API Helper ───
+async function api(path, opts = {}) {
+  try {
+    const res = await fetch(`${API}${path}`, {
+      headers: { 'Content-Type': 'application/json', ...opts.headers },
+      ...opts,
+      body: opts.body ? (typeof opts.body === 'string' ? opts.body : JSON.stringify(opts.body)) : undefined
+    });
+    const data = await res.json();
+    if (!data.success) throw new Error(data.error || 'Request failed');
+    return data.data;
+  } catch (e) {
+    toast(e.message, 'error');
+    throw e;
+  }
+}
+
+// ─── Toast Notifications ───
+function toast(msg, type = 'info') {
+  const el = document.createElement('div');
+  el.className = `toast ${type}`;
+  el.textContent = msg;
+  document.getElementById('toast-container').appendChild(el);
+  setTimeout(() => { el.style.opacity = '0'; el.style.transform = 'translateX(20px)'; setTimeout(() => el.remove(), 300); }, 4000);
+}
+
+// ─── Navigation ───
+const pageTitles = {
+  studio: 'Content Studio', builder: 'Brand Builder', calendar: 'Content Calendar',
+  queue: 'Forge Queue', trends: 'Trend Scanner', analytics: 'Analytics',
+  assets: 'Asset Library', settings: 'Brand Settings'
+};
+
+document.querySelectorAll('.nav-item[data-page]').forEach(item => {
+  item.addEventListener('click', () => navigateTo(item.dataset.page));
+});
+
+function navigateTo(page) {
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.querySelector(`.nav-item[data-page="${page}"]`)?.classList.add('active');
+  document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
+  const section = document.getElementById(`page-${page}`);
+  if (section) {
+    section.classList.add('active');
+    if (page === 'studio') section.style.display = 'grid';
+  }
+  document.getElementById('page-title').textContent = pageTitles[page] || page;
+  document.getElementById('sidebar').classList.remove('open');
+  if (page === 'calendar') renderCalendar();
+  if (page === 'queue') loadQueue();
+  if (page === 'assets') loadAssets();
+  if (page === 'settings') renderSettingsBrands();
+}
+
+// ─── Brand Management ───
+async function loadBrands() {
+  store.brands = await api('/api/brands');
+  renderBrandDropdown();
+  if (store.brands.length > 0 && !store.activeBrand) {
+    selectBrand(store.brands[0]);
+  }
+}
+
+function selectBrand(brand) {
+  store.activeBrand = brand;
+  document.getElementById('brand-name-display').textContent = brand.name;
+  document.getElementById('brand-dot').style.background = brand.primary_color || '#C8A84E';
+  document.getElementById('brand-dropdown').classList.remove('open');
+}
+
+function renderBrandDropdown() {
+  const dd = document.getElementById('brand-dropdown');
+  dd.innerHTML = store.brands.map(b => `
+    <div class="brand-option ${store.activeBrand?.id === b.id ? 'active' : ''}" onclick="selectBrand(store.brands.find(x=>x.id==='${b.id}'))">
+      <div class="brand-dot" style="background:${b.primary_color || '#C8A84E'}"></div>
+      ${escHtml(b.name)}
+    </div>
+  `).join('') + `
+    <div class="brand-option brand-add" onclick="openNewBrandModal()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      New Brand
+    </div>`;
+}
+
+document.getElementById('brand-toggle').addEventListener('click', () => {
+  document.getElementById('brand-dropdown').classList.toggle('open');
+});
+
+function openNewBrandModal() {
+  document.getElementById('brand-dropdown').classList.remove('open');
+  document.getElementById('modal-new-brand').classList.add('open');
+}
+
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+}
+
+async function createNewBrand() {
+  const name = document.getElementById('new-brand-name').value.trim();
+  if (!name) return toast('Brand name is required', 'error');
+  const brand = await api('/api/brands', {
+    method: 'POST',
+    body: {
+      name,
+      tagline: document.getElementById('new-brand-tagline').value.trim(),
+      niche: document.getElementById('new-brand-niche').value,
+      stage: document.getElementById('new-brand-stage').value,
+      primary_color: document.getElementById('new-brand-color1').value,
+      secondary_color: document.getElementById('new-brand-color2').value
+    }
+  });
+  store.brands.push(brand);
+  selectBrand(brand);
+  renderBrandDropdown();
+  closeModal('modal-new-brand');
+  toast(`${brand.name} created`, 'success');
+  document.getElementById('new-brand-name').value = '';
+  document.getElementById('new-brand-tagline').value = '';
+}
+
+// Color input hex display
+document.getElementById('new-brand-color1')?.addEventListener('input', e => {
+  document.getElementById('new-brand-color1-hex').textContent = e.target.value;
+});
+document.getElementById('new-brand-color2')?.addEventListener('input', e => {
+  document.getElementById('new-brand-color2-hex').textContent = e.target.value;
+});
+
+// ─── Templates ───
+async function loadTemplates() {
+  store.templates = await api('/api/templates');
+  renderTemplateList();
+}
+
+function renderTemplateList() {
+  document.getElementById('template-list').innerHTML = store.templates.map(t => `
+    <div class="card" style="margin-bottom:8px;padding:14px;cursor:pointer" onclick="selectTemplate('${t.id}')">
+      <div style="font-weight:600;font-size:.82rem;margin-bottom:4px">${escHtml(t.name)}</div>
+      <div style="font-size:.7rem;color:var(--text3)">${escHtml(t.category)} · ${JSON.parse(t.variables || '[]').length} variables</div>
+    </div>
+  `).join('');
+}
+
+async function selectTemplate(id) {
+  const t = store.templates.find(x => x.id === id);
+  if (!t) return;
+  if (!store.activeBrand) return toast('Select a brand first', 'error');
+  setLoading(true);
+  try {
+    const result = await api('/api/rebuild', {
+      method: 'POST',
+      body: { brand_id: store.activeBrand.id, source_type: 'template', template_id: id, funnel_stage: 'awareness' }
+    });
+    store.currentContent = result.content;
+    store.currentScript = result.script;
+    renderScriptEditor(result.script);
+    renderPreview(result.script);
+    toast('Content forged from template', 'success');
+  } catch (e) {}
+  setLoading(false);
+}
+
+// ─── Source Mode Tabs ───
+document.querySelectorAll('.source-tabs .tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.source-tabs .tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    document.querySelectorAll('.source-mode').forEach(m => m.style.display = 'none');
+    document.getElementById(`source-${tab.dataset.source}`).style.display = 'block';
+  });
+});
+
+// ─── Forge from Video ───
+async function forgeFromVideo() {
+  const url = document.getElementById('extract-url').value.trim();
+  if (!url) return toast('Paste a video URL', 'error');
+  if (!store.activeBrand) return toast('Select a brand first', 'error');
+  setLoading(true);
+  const btn = document.getElementById('extract-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="animation:spin 1s linear infinite"><path d="M21 12a9 9 0 11-6.219-8.56"/></svg> Extracting...';
+
+  try {
+    const intelligence = await api('/api/intelligence', { method: 'POST', body: { url } });
+    renderIntelligence(intelligence);
+
+    const result = await api('/api/rebuild', {
+      method: 'POST',
+      body: {
+        brand_id: store.activeBrand.id,
+        intelligence,
+        source_url: url,
+        source_type: 'video',
+        funnel_stage: document.getElementById('scratch-funnel')?.value || 'awareness'
+      }
+    });
+
+    store.currentContent = result.content;
+    store.currentScript = result.script;
+    renderScriptEditor(result.script);
+    renderPreview(result.script);
+    toast('Content forged from video', 'success');
+  } catch (e) {}
+
+  btn.disabled = false;
+  btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> Extract';
+  setLoading(false);
+}
+
+function renderIntelligence(data) {
+  const display = document.getElementById('intelligence-display');
+  const title = data.title || data.metadata?.title || 'Video Intelligence';
+  const transcript = data.transcript || data.text || '';
+  const hooks = data.hooks || [];
+  display.innerHTML = `
+    <div class="card" style="margin-bottom:12px">
+      <div class="card-title" style="margin-bottom:8px">${escHtml(title)}</div>
+      ${hooks.length ? `<div style="margin-bottom:8px"><div style="font-size:.7rem;font-weight:700;color:var(--gold);margin-bottom:4px">HOOKS DETECTED</div>${hooks.slice(0,3).map(h => `<div style="font-size:.78rem;padding:4px 0;border-bottom:1px solid var(--border)">"${escHtml(typeof h === 'string' ? h : h.text || '')}"</div>`).join('')}</div>` : ''}
+      ${transcript ? `<div><div style="font-size:.7rem;font-weight:700;color:var(--text3);margin-bottom:4px">TRANSCRIPT</div><div style="font-size:.78rem;color:var(--text2);max-height:200px;overflow-y:auto;line-height:1.6">${escHtml(transcript.substring(0, 800))}${transcript.length > 800 ? '...' : ''}</div></div>` : ''}
+    </div>`;
+}
+
+// ─── Forge from Scratch ───
+async function forgeFromScratch() {
+  const prompt = document.getElementById('scratch-prompt').value.trim();
+  if (!prompt) return toast('Describe what you want to create', 'error');
+  if (!store.activeBrand) return toast('Select a brand first', 'error');
+  setLoading(true);
+  try {
+    const result = await api('/api/rebuild', {
+      method: 'POST',
+      body: {
+        brand_id: store.activeBrand.id,
+        source_type: 'scratch',
+        intelligence: { prompt },
+        funnel_stage: document.getElementById('scratch-funnel').value,
+        length: document.getElementById('scratch-length').value
+      }
+    });
+    store.currentContent = result.content;
+    store.currentScript = result.script;
+    renderScriptEditor(result.script);
+    renderPreview(result.script);
+    toast('Content forged from scratch', 'success');
+  } catch (e) {}
+  setLoading(false);
+}
+
+// ─── Script Editor ───
+function renderScriptEditor(script) {
+  const editor = document.getElementById('editor-content');
+  editor.innerHTML = `
+    <div class="script-section hook">
+      <div class="script-section-label">
+        <span class="label-text"><span class="dot hook"></span> Hook</span>
+        <button class="btn btn-ghost btn-sm" onclick="regenerateSection('hook')">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
+          Regen
+        </button>
+      </div>
+      <textarea id="script-hook" oninput="updatePreview()">${escHtml(script.hook || '')}</textarea>
+    </div>
+    <div class="script-section body">
+      <div class="script-section-label">
+        <span class="label-text"><span class="dot body"></span> Body</span>
+        <button class="btn btn-ghost btn-sm" onclick="regenerateSection('body')">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
+          Regen
+        </button>
+      </div>
+      <textarea id="script-body" rows="8" oninput="updatePreview()">${escHtml(script.body || '')}</textarea>
+    </div>
+    <div class="script-section cta">
+      <div class="script-section-label">
+        <span class="label-text"><span class="dot cta"></span> Call to Action</span>
+        <button class="btn btn-ghost btn-sm" onclick="regenerateSection('cta')">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
+          Regen
+        </button>
+      </div>
+      <textarea id="script-cta" oninput="updatePreview()">${escHtml(script.cta || '')}</textarea>
+    </div>
+    <div class="script-meta">
+      <span>${countWords(script)} words</span>
+      <span>~${estimateLength(script)}</span>
+      <span class="tag tag-${script.funnel_stage || 'awareness'}">${script.funnel_stage || 'awareness'}</span>
+    </div>
+    <div class="script-actions">
+      <button class="btn btn-gold" style="flex:1" onclick="approveScript()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+        Approve & Save
+      </button>
+      <button class="btn btn-outline" onclick="openScheduleModal()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/></svg>
+        Schedule
+      </button>
+    </div>`;
+}
+
+function updatePreview() {
+  const hook = document.getElementById('script-hook')?.value || '';
+  const body = document.getElementById('script-body')?.value || '';
+  const cta = document.getElementById('script-cta')?.value || '';
+  renderPreview({ hook, body, cta, funnel_stage: store.currentScript?.funnel_stage });
+  const meta = document.querySelector('.script-meta');
+  if (meta) {
+    const script = { hook, body, cta };
+    meta.innerHTML = `<span>${countWords(script)} words</span><span>~${estimateLength(script)}</span><span class="tag tag-${store.currentScript?.funnel_stage || 'awareness'}">${store.currentScript?.funnel_stage || 'awareness'}</span>`;
+  }
+}
+
+function renderPreview(script) {
+  document.getElementById('preview-content').innerHTML = `
+    <div class="preview-card">
+      <div class="preview-phone">
+        <div class="phone-text">
+          <div class="hook-preview">${escHtml(script.hook || '')}</div>
+          <div class="body-preview">${escHtml((script.body || '').substring(0, 200))}${(script.body||'').length > 200 ? '...' : ''}</div>
+          <div style="margin-top:12px;font-size:.75rem;color:var(--green);font-weight:600">${escHtml(script.cta || '')}</div>
+        </div>
+      </div>
+    </div>
+    <div class="preview-platform-icons">
+      <div class="preview-platform-icon active" title="TikTok">TT</div>
+      <div class="preview-platform-icon" title="Instagram">IG</div>
+      <div class="preview-platform-icon" title="YouTube">YT</div>
+      <div class="preview-platform-icon" title="Twitter/X">X</div>
+    </div>
+    ${script.title ? `<div style="margin-top:12px"><div style="font-size:.7rem;font-weight:700;color:var(--text3);margin-bottom:4px">SUGGESTED TITLE</div><div style="font-size:.82rem">${escHtml(script.title)}</div></div>` : ''}`;
+}
+
+async function regenerateSection(section) {
+  if (!store.activeBrand || !store.currentScript) return;
+  setLoading(true);
+  try {
+    const currentScript = {
+      hook: document.getElementById('script-hook')?.value || '',
+      body: document.getElementById('script-body')?.value || '',
+      cta: document.getElementById('script-cta')?.value || ''
+    };
+    const result = await api('/api/rebuild/section', {
+      method: 'POST',
+      body: {
+        brand_id: store.activeBrand.id,
+        section,
+        current_script: currentScript,
+        funnel_stage: store.currentScript.funnel_stage,
+        tone: document.getElementById('editor-tone').value
+      }
+    });
+    const textarea = document.getElementById(`script-${section}`);
+    if (textarea && result[section]) {
+      textarea.value = result[section];
+      updatePreview();
+    }
+    toast(`${section} regenerated`, 'success');
+  } catch (e) {}
+  setLoading(false);
+}
+
+async function approveScript() {
+  if (!store.currentContent) return;
+  const script = {
+    hook: document.getElementById('script-hook')?.value || '',
+    body: document.getElementById('script-body')?.value || '',
+    cta: document.getElementById('script-cta')?.value || ''
+  };
+  try {
+    await api(`/api/content/${store.currentContent.id}`, {
+      method: 'PUT',
+      body: { rebuilt_script: JSON.stringify(script), status: 'approved' }
+    });
+    toast('Script approved and saved', 'success');
+  } catch (e) {}
+}
+
+function openScheduleModal() {
+  if (!store.currentContent) return toast('Approve content first', 'error');
+  const now = new Date();
+  now.setHours(now.getHours() + 1, 0, 0, 0);
+  document.getElementById('schedule-datetime').value = now.toISOString().slice(0, 16);
+  document.getElementById('modal-schedule').classList.add('open');
+}
+
+async function scheduleContent() {
+  if (!store.currentContent) return;
+  try {
+    await api('/api/schedule', {
+      method: 'POST',
+      body: {
+        content_id: store.currentContent.id,
+        platform: document.getElementById('schedule-platform').value,
+        scheduled_for: document.getElementById('schedule-datetime').value
+      }
+    });
+    closeModal('modal-schedule');
+    toast('Content scheduled', 'success');
+  } catch (e) {}
+}
+
+// ─── Calendar ───
+function renderCalendar() {
+  const date = store.calendarDate;
+  const year = date.getFullYear();
+  const month = date.getMonth();
+  document.getElementById('calendar-month').textContent = new Date(year, month).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+
+  const firstDay = new Date(year, month, 1).getDay();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const daysInPrev = new Date(year, month, 0).getDate();
+  const today = new Date();
+
+  let html = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(d => `<div class="calendar-day-header">${d}</div>`).join('');
+
+  for (let i = 0; i < firstDay; i++) {
+    const day = daysInPrev - firstDay + i + 1;
+    html += `<div class="calendar-day other-month"><div class="calendar-date">${day}</div></div>`;
+  }
+
+  for (let day = 1; day <= daysInMonth; day++) {
+    const isToday = today.getFullYear() === year && today.getMonth() === month && today.getDate() === day;
+    const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+    const events = store.scheduledPosts.filter(p => p.scheduled_for?.startsWith(dateStr));
+    html += `<div class="calendar-day${isToday ? ' today' : ''}">
+      <div class="calendar-date">${day}</div>
+      ${events.map(e => `<div class="calendar-event ${e.funnel_stage || 'awareness'}">${escHtml(e.platform || 'Post')}</div>`).join('')}
+    </div>`;
+  }
+
+  const totalCells = firstDay + daysInMonth;
+  const remaining = totalCells % 7 === 0 ? 0 : 7 - (totalCells % 7);
+  for (let i = 1; i <= remaining; i++) {
+    html += `<div class="calendar-day other-month"><div class="calendar-date">${i}</div></div>`;
+  }
+
+  document.getElementById('calendar-grid').innerHTML = html;
+  loadSchedule();
+}
+
+async function loadSchedule() {
+  if (!store.activeBrand) return;
+  const date = store.calendarDate;
+  const start = new Date(date.getFullYear(), date.getMonth(), 1).toISOString().split('T')[0];
+  const end = new Date(date.getFullYear(), date.getMonth() + 1, 0).toISOString().split('T')[0];
+  try {
+    store.scheduledPosts = await api(`/api/calendar?brand_id=${store.activeBrand.id}&start=${start}&end=${end}`);
+    renderCalendar();
+  } catch (e) { store.scheduledPosts = []; }
+}
+
+function changeMonth(delta) {
+  if (delta === 0) { store.calendarDate = new Date(); }
+  else { store.calendarDate.setMonth(store.calendarDate.getMonth() + delta); }
+  renderCalendar();
+}
+
+// ─── Queue ───
+async function loadQueue() {
+  try {
+    const allJobs = await api('/api/queue');
+    store.jobs = allJobs;
+    renderQueue();
+  } catch (e) {}
+}
+
+function renderQueue() {
+  const container = document.getElementById('queue-content');
+  if (store.jobs.length === 0) {
+    container.innerHTML = `<div class="empty-state"><div class="empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/></svg></div><div class="empty-title">No Jobs Yet</div><div class="empty-text">When you forge content, creation jobs will appear here with real-time progress tracking.</div></div>`;
+    return;
+  }
+  container.innerHTML = `<div class="queue-list">${store.jobs.map(j => `
+    <div class="queue-item">
+      <div class="queue-status ${j.status}"></div>
+      <div class="queue-info">
+        <div class="queue-type">${escHtml(j.type)}</div>
+        <div class="queue-time">${timeAgo(j.created_at)}</div>
+      </div>
+      <div class="queue-progress">
+        <div class="queue-bar"><div class="queue-bar-fill" style="width:${j.progress || 0}%"></div></div>
+      </div>
+      <div style="font-size:.7rem;color:var(--text3);width:50px;text-align:right">${j.status}</div>
+      ${j.status === 'failed' ? `<button class="btn btn-ghost btn-sm" onclick="retryJob('${j.id}')">Retry</button>` : ''}
+    </div>`).join('')}</div>`;
+  const active = store.jobs.filter(j => j.status === 'pending' || j.status === 'processing').length;
+  const badge = document.getElementById('queue-count');
+  if (active > 0) { badge.textContent = active; badge.style.display = ''; }
+  else { badge.style.display = 'none'; }
+}
+
+async function retryJob(id) {
+  try {
+    await api(`/api/queue/${id}/retry`, { method: 'POST' });
+    loadQueue();
+    toast('Job requeued', 'success');
+  } catch (e) {}
+}
+
+// ─── Assets ───
+async function loadAssets() {
+  if (!store.activeBrand) return;
+  try {
+    store.assets = await api(`/api/assets?brand_id=${store.activeBrand.id}`);
+    renderAssets();
+  } catch (e) {}
+}
+
+function renderAssets() {
+  const grid = document.getElementById('assets-grid');
+  if (store.assets.length === 0) {
+    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M13 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V9z"/><polyline points="13 2 13 9 20 9"/></svg></div><div class="empty-title">No Assets Yet</div><div class="empty-text">Your generated content will be organized here.</div></div>`;
+    return;
+  }
+  const filter = document.getElementById('assets-filter').value;
+  const search = document.getElementById('assets-search').value.toLowerCase();
+  const filtered = store.assets.filter(a => {
+    if (filter !== 'all' && a.type !== filter) return false;
+    if (search && !a.filename?.toLowerCase().includes(search)) return false;
+    return true;
+  });
+  grid.innerHTML = filtered.map(a => `
+    <div class="asset-card">
+      <div class="asset-thumb">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          ${a.type === 'video' ? '<polygon points="5 3 19 12 5 21 5 3"/>' :
+            a.type === 'image' ? '<rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>' :
+            a.type === 'audio' ? '<path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>' :
+            '<path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/>'}
+        </svg>
+      </div>
+      <div class="asset-info">
+        <div class="asset-name">${escHtml(a.filename || 'Untitled')}</div>
+        <div class="asset-meta">
+          <span>${a.type}</span>
+          <span>${a.size_bytes ? formatBytes(a.size_bytes) : ''}</span>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+document.getElementById('assets-search')?.addEventListener('input', renderAssets);
+document.getElementById('assets-filter')?.addEventListener('change', renderAssets);
+
+// ─── Settings / Brand Form ───
+function renderSettingsBrands() {
+  const list = document.getElementById('settings-brand-list');
+  list.innerHTML = store.brands.map(b => `
+    <div class="brand-list-item ${store.activeBrand?.id === b.id ? 'active' : ''}" onclick="editBrand('${b.id}')">
+      <div class="brand-list-color" style="background:${b.primary_color || '#C8A84E'}"></div>
+      <div>
+        <div class="brand-list-name">${escHtml(b.name)}</div>
+        <div class="brand-list-niche">${b.niche || 'No niche set'} · ${b.stage || 'unknown'}</div>
+      </div>
+    </div>`).join('');
+}
+
+function editBrand(id) {
+  const brand = store.brands.find(b => b.id === id);
+  if (!brand) return;
+  selectBrand(brand);
+  renderSettingsBrands();
+
+  const container = document.getElementById('brand-form-container');
+  container.innerHTML = `
+    <div class="brand-form">
+      <div class="brand-form-section">
+        <h3>Identity</h3>
+        <div class="input-group"><label>Brand Name</label><input type="text" id="edit-name" value="${escAttr(brand.name || '')}"></div>
+        <div class="input-group"><label>Tagline</label><input type="text" id="edit-tagline" value="${escAttr(brand.tagline || '')}"></div>
+        <div class="form-row">
+          <div class="input-group"><label>Niche</label><select id="edit-niche">${nicheOptions(brand.niche)}</select></div>
+          <div class="input-group"><label>Stage</label><select id="edit-stage">${stageOptions(brand.stage)}</select></div>
+        </div>
+        <div class="input-group"><label>Brand Voice</label><select id="edit-voice">${voiceOptions(brand.voice)}</select></div>
+        <div class="form-row">
+          <div class="input-group"><label>Primary Color</label><div class="color-input"><input type="color" id="edit-color1" value="${brand.primary_color || '#C8A84E'}"><span>${brand.primary_color || '#C8A84E'}</span></div></div>
+          <div class="input-group"><label>Secondary Color</label><div class="color-input"><input type="color" id="edit-color2" value="${brand.secondary_color || '#1A1A2E'}"><span>${brand.secondary_color || '#1A1A2E'}</span></div></div>
+        </div>
+        <div class="input-group"><label>Website</label><input type="url" id="edit-website" value="${escAttr(brand.website || '')}"></div>
+      </div>
+      <div class="brand-form-section">
+        <h3>Product</h3>
+        <div class="input-group"><label>Product / Service Name</label><input type="text" id="edit-product" value="${escAttr(brand.product_name || '')}"></div>
+        <div class="input-group"><label>What problem does it solve?</label><textarea id="edit-problem">${escHtml(brand.problem || '')}</textarea></div>
+        <div class="input-group"><label>Transformation (before → after)</label><textarea id="edit-transformation">${escHtml(brand.transformation || '')}</textarea></div>
+        <div class="input-group"><label>Price Point</label><input type="text" id="edit-price" value="${escAttr(brand.price || '')}"></div>
+        <div class="input-group"><label>Key Selling Points (one per line)</label><textarea id="edit-selling-points">${escHtml(brand.selling_points || '')}</textarea></div>
+      </div>
+      <div class="brand-form-section">
+        <h3>Audience</h3>
+        <div class="input-group"><label>Target Audience</label><textarea id="edit-audience" placeholder="Age range, interests, pain points, desires...">${escHtml(brand.target_audience || '')}</textarea></div>
+        <div class="input-group"><label>Competitors (one per line)</label><textarea id="edit-competitors" placeholder="@competitor1&#10;@competitor2">${escHtml(brand.competitors || '')}</textarea></div>
+      </div>
+      <div class="brand-form-section">
+        <h3>Story</h3>
+        <div class="input-group"><label>Why did you build this?</label><textarea id="edit-story" rows="4">${escHtml(brand.story || '')}</textarea></div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-gold" onclick="saveBrand('${brand.id}')">Save Changes</button>
+        <button class="btn btn-outline" style="color:var(--red);border-color:var(--red)" onclick="if(confirm('Delete this brand?'))deleteBrand('${brand.id}')">Delete</button>
+      </div>
+    </div>`;
+}
+
+async function saveBrand(id) {
+  try {
+    const data = {
+      name: document.getElementById('edit-name').value,
+      tagline: document.getElementById('edit-tagline').value,
+      niche: document.getElementById('edit-niche').value,
+      stage: document.getElementById('edit-stage').value,
+      voice: document.getElementById('edit-voice').value,
+      primary_color: document.getElementById('edit-color1').value,
+      secondary_color: document.getElementById('edit-color2').value,
+      website: document.getElementById('edit-website').value,
+      product_name: document.getElementById('edit-product').value,
+      problem: document.getElementById('edit-problem').value,
+      transformation: document.getElementById('edit-transformation').value,
+      price: document.getElementById('edit-price').value,
+      selling_points: document.getElementById('edit-selling-points').value,
+      target_audience: document.getElementById('edit-audience').value,
+      competitors: document.getElementById('edit-competitors').value,
+      story: document.getElementById('edit-story').value
+    };
+    const updated = await api(`/api/brands/${id}`, { method: 'PUT', body: data });
+    const idx = store.brands.findIndex(b => b.id === id);
+    if (idx >= 0) store.brands[idx] = updated;
+    selectBrand(updated);
+    renderSettingsBrands();
+    toast('Brand saved', 'success');
+  } catch (e) {}
+}
+
+async function deleteBrand(id) {
+  try {
+    await api(`/api/brands/${id}`, { method: 'DELETE' });
+    store.brands = store.brands.filter(b => b.id !== id);
+    if (store.activeBrand?.id === id) {
+      store.activeBrand = store.brands[0] || null;
+      if (store.activeBrand) selectBrand(store.activeBrand);
+      else { document.getElementById('brand-name-display').textContent = 'Select Brand'; }
+    }
+    renderBrandDropdown();
+    renderSettingsBrands();
+    document.getElementById('brand-form-container').innerHTML = '<div class="empty-state"><div class="empty-title">Select a Brand</div></div>';
+    toast('Brand deleted', 'success');
+  } catch (e) {}
+}
+
+// ─── Utility Functions ───
+function escHtml(s) { const d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
+function escAttr(s) { return (s || '').replace(/"/g, '&quot;').replace(/</g, '&lt;'); }
+function countWords(s) { return ((s.hook || '') + ' ' + (s.body || '') + ' ' + (s.cta || '')).trim().split(/\s+/).filter(Boolean).length; }
+function estimateLength(s) { const w = countWords(s); const secs = Math.round(w / 2.5); if (secs < 60) return `${secs}s`; return `${Math.floor(secs/60)}m ${secs%60}s`; }
+function formatBytes(b) { if (b < 1024) return b + 'B'; if (b < 1048576) return (b/1024).toFixed(1) + 'KB'; return (b/1048576).toFixed(1) + 'MB'; }
+function timeAgo(d) { if (!d) return ''; const s = Math.floor((Date.now() - new Date(d).getTime()) / 1000); if (s < 60) return 'just now'; if (s < 3600) return Math.floor(s/60) + 'm ago'; if (s < 86400) return Math.floor(s/3600) + 'h ago'; return Math.floor(s/86400) + 'd ago'; }
+
+function nicheOptions(val) {
+  return [['','Select...'],['ecommerce','E-commerce'],['content_creator','Content Creator'],['restaurant','Restaurant'],['saas','SaaS'],['trades','Trades'],['kids_content','Kids Content'],['fitness','Fitness'],['education','Education'],['real_estate','Real Estate'],['other','Other']].map(([v,l]) => `<option value="${v}"${v===val?' selected':''}>${l}</option>`).join('');
+}
+function stageOptions(val) {
+  return [['idea','Just an idea'],['starting','Just starting'],['established','Established'],['scaling','Scaling']].map(([v,l]) => `<option value="${v}"${v===val?' selected':''}>${l}</option>`).join('');
+}
+function voiceOptions(val) {
+  return [['','Select...'],['professional','Professional'],['casual','Casual'],['energetic','Energetic'],['inspirational','Inspirational'],['educational','Educational'],['entertaining','Entertaining']].map(([v,l]) => `<option value="${v}"${v===val?' selected':''}>${l}</option>`).join('');
+}
+
+function setLoading(on) {
+  document.body.style.cursor = on ? 'wait' : '';
+}
+
+// ─── Init ───
+(async function init() {
+  try {
+    await loadBrands();
+    await loadTemplates();
+  } catch (e) {
+    console.error('Init error:', e);
+  }
+})();
+</script>
+</body>
+</html>
