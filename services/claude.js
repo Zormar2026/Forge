@@ -52,17 +52,33 @@ CTA STYLE: ${ctaMap[funnel_stage] || ctaMap.awareness}
 `;
 
   if (intelligence) {
-    const transcript = intelligence.transcript || intelligence.text || '';
+    const transcript = intelligence.transcript || '';
+    const summary = intelligence.summary || '';
+    const hooks = intelligence.script_hook || '';
+    const insights = intelligence.key_insights || [];
+    const triggers = intelligence.emotional_triggers || [];
+    const viral = intelligence.viral_potential || {};
+    const format = intelligence.content_format || {};
+    const typeSpec = intelligence.type_specific || {};
+    const monetization = intelligence.monetization_angles || [];
+
     userPrompt += `
-VIRAL REFERENCE (adapt this structure for the brand above):
-- Original Hook: ${intelligence.hook || 'N/A'}
-- Structure: ${intelligence.structure || 'N/A'}
-- Why It Worked: ${intelligence.why_it_works || 'N/A'}
-- Key Moments: ${JSON.stringify(intelligence.key_moments || [])}
-- Engagement Drivers: ${JSON.stringify(intelligence.engagement_drivers || [])}
+VIRAL REFERENCE (adapt this proven content for the brand above):
+- Content Type: ${intelligence.content_type || 'unknown'}
+- Original Hook: ${hooks || 'N/A'}
+- Summary: ${summary.substring(0, 500) || 'N/A'}
+- Key Insights: ${JSON.stringify(insights.slice(0, 5))}
+- Emotional Triggers: ${JSON.stringify(triggers.slice(0, 5))}
+- Viral Score: ${viral.score || 'N/A'}/10 — ${viral.explanation || ''}
+- Hook Type: ${format.hookType || 'N/A'}
+- Body Structure: ${format.bodyStructure || 'N/A'}
+- Monetization Angles: ${JSON.stringify(monetization.slice(0, 3))}
 `;
+    if (typeSpec.whyItWorks3Reasons) {
+      userPrompt += `- Why It Works: ${JSON.stringify(typeSpec.whyItWorks3Reasons)}\n`;
+    }
     if (transcript) {
-      userPrompt += `\nORIGINAL TRANSCRIPT (use this as the primary source material — adapt the messaging, angles, and key points for the brand above):\n${transcript.substring(0, 3000)}\n`;
+      userPrompt += `\nORIGINAL TRANSCRIPT (use as primary source material — adapt messaging, angles, and key points for the brand):\n${transcript.substring(0, 3000)}\n`;
     }
   } else {
     userPrompt += '\nNo reference content provided. Create an original script from scratch based on the brand profile.\n';

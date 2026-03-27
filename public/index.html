@@ -1085,13 +1085,7 @@ async function extractVideo() {
   document.getElementById('manual-transcript-box').classList.remove('visible');
 
   try {
-    let intelligence = await api('/api/intelligence', { method: 'POST', body: { url } });
-
-    // Safety: unwrap nested { success, data } if Extract API double-wraps
-    if (intelligence && intelligence.data && typeof intelligence.data === 'object' && !Array.isArray(intelligence.data) && (intelligence.success !== undefined)) {
-      console.log('[Forge] Unwrapping nested intelligence response');
-      intelligence = intelligence.data;
-    }
+    const intelligence = await api('/api/intelligence', { method: 'POST', body: { url } });
     console.log('[Forge] Intelligence keys:', Object.keys(intelligence || {}).join(', '));
 
     store._intelligence = intelligence;
@@ -1100,8 +1094,7 @@ async function extractVideo() {
     renderFullIntelligence(intelligence);
 
     // Check transcript
-    const transcript = intelligence.transcript || intelligence.text || '';
-    if (!transcript) {
+    if (!intelligence.transcript) {
       document.getElementById('manual-transcript-box').classList.add('visible');
       toast('No transcript found — paste it manually or try a YouTube URL', 'error');
     }
@@ -1241,118 +1234,202 @@ async function forgeIt() {
 }
 
 // ─── Render Full Intelligence Panel ───
-function renderFullIntelligence(data) {
+function renderFullIntelligence(d) {
   const display = document.getElementById('intelligence-display');
-  if (!data || typeof data !== 'object') { display.textContent = 'No intelligence data'; return; }
+  if (!d || typeof d !== 'object') { display.textContent = 'No intelligence data'; return; }
 
-  // Safely extract string fields (stringify objects)
-  function str(v) { if (!v) return ''; if (typeof v === 'string') return v; return JSON.stringify(v); }
-  function arr(v) { if (Array.isArray(v)) return v; if (!v) return []; return []; }
+  const e = escHtml;
+  const title = d.title || 'Video Intelligence';
+  const author = d.author || '';
+  const duration = d.duration || '';
+  const views = d.views || '';
+  const sourceType = d.source_type || '';
+  const contentType = d.content_type || 'unknown';
+  const summary = d.summary || '';
+  const scriptHook = d.script_hook || '';
+  const insights = d.key_insights || [];
+  const topics = d.key_topics || [];
+  const triggers = d.emotional_triggers || [];
+  const actions = d.action_items || [];
+  const monetization = d.monetization_angles || [];
+  const quotes = d.quotes || [];
+  const sentiment = d.sentiment || '';
+  const audience = d.target_audience || '';
+  const transcript = d.transcript || '';
+  const viral = d.viral_potential || {};
+  const speaker = d.speaker_analysis || {};
+  const format = d.content_format || {};
+  const typeSpec = d.type_specific || {};
+  const quality = d.quality_score || 0;
+  const isAd = contentType.includes('ad') || contentType.includes('marketing');
 
-  const title = str(data.title) || str(data.metadata?.title) || 'Video Intelligence';
-  const source = str(data.source || data.platform || '');
-  const contentType = str(data.content_type || data.type || 'unknown').toLowerCase();
-  const summary = str(data.summary || data.description || '');
-  const hooks = arr(data.hooks);
-  const hookAnalysis = str(data.hook_analysis || data.hook_why || '');
-  const insights = arr(data.key_insights || data.insights || data.key_moments);
-  const transcript = str(data.transcript || data.text || '');
-  const isAd = contentType === 'ad' || data.is_ad;
-  const adData = data.ad_breakdown || data.ad_analysis || null;
-  const engDrivers = arr(data.engagement_drivers);
-  const whyItWorks = str(data.why_it_works || data.structure || '');
+  // Badge color
+  const bc = isAd ? 'ad' : (contentType.includes('education') ? 'educational' : contentType.includes('entertain') ? 'entertainment' : 'unknown');
 
-  const badgeClass = isAd ? 'ad' : (contentType === 'educational' ? 'educational' : contentType === 'entertainment' ? 'entertainment' : contentType === 'organic' ? 'organic' : 'unknown');
+  let h = '<div class="intel-panel"><div class="card" style="padding:16px">';
 
-  let html = '<div class="intel-panel"><div class="card" style="padding:16px">';
+  // ── Header: title, badge, meta ──
+  h += '<div class="intel-header"><div style="flex:1">';
+  h += '<div class="card-title" style="margin-bottom:6px">' + e(title) + '</div>';
+  h += '<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">';
+  h += '<span class="intel-type-badge ' + bc + '">' + e(contentType) + '</span>';
+  if (sourceType) h += '<span style="font-size:.68rem;color:var(--text3)">' + e(sourceType) + '</span>';
+  if (quality) h += '<span style="font-size:.68rem;color:var(--gold)">Quality: ' + quality + '/10</span>';
+  h += '</div>';
+  // Meta row
+  const meta = [author, duration, views].filter(Boolean);
+  if (meta.length) h += '<div style="font-size:.72rem;color:var(--text3);margin-top:6px">' + meta.map(e).join(' · ') + '</div>';
+  h += '</div></div>';
 
-  // Header: title + type badge + source
-  html += '<div class="intel-header"><div style="flex:1"><div class="card-title" style="margin-bottom:6px">' + escHtml(title) + '</div>';
-  html += '<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">';
-  html += '<span class="intel-type-badge ' + badgeClass + '">' + escHtml(contentType || 'video') + '</span>';
-  if (source) html += '<span style="font-size:.7rem;color:var(--text3)">' + escHtml(source) + '</span>';
-  html += '</div></div></div>';
-
-  // Summary
+  // ── Summary ──
   if (summary) {
-    html += '<div class="intel-section"><div class="intel-section-title"><span class="dot"></span> Summary</div>';
-    html += '<div class="intel-card">' + escHtml(summary) + '</div></div>';
+    h += '<div class="intel-section"><div class="intel-section-title"><span class="dot"></span> Summary</div>';
+    h += '<div class="intel-card">' + e(summary) + '</div></div>';
   }
 
-  // Hook Analysis
-  if (hooks.length) {
-    html += '<div class="intel-section"><div class="intel-section-title"><span class="dot" style="background:var(--gold)"></span> Hook Analysis</div>';
-    hooks.slice(0, 3).forEach(function(h) {
-      const hookText = typeof h === 'string' ? h : h.text || h.hook || '';
-      html += '<div class="intel-hook-item">"' + escHtml(hookText) + '"</div>';
-    });
-    if (hookAnalysis) html += '<div style="font-size:.76rem;color:var(--text2);margin-top:6px;line-height:1.5;padding:0 4px">' + escHtml(hookAnalysis) + '</div>';
-    if (whyItWorks) html += '<div style="font-size:.76rem;color:var(--text2);margin-top:4px;padding:0 4px"><strong style="color:var(--gold)">Why it works:</strong> ' + escHtml(whyItWorks) + '</div>';
-    html += '</div>';
+  // ── Script Hook ──
+  if (scriptHook) {
+    h += '<div class="intel-section"><div class="intel-section-title"><span class="dot" style="background:var(--gold)"></span> Script Hook</div>';
+    h += '<div class="intel-hook-item">"' + e(scriptHook) + '"</div>';
+    if (format.hookType) h += '<div style="font-size:.74rem;color:var(--text2);padding:4px 0">Hook type: <strong style="color:var(--gold)">' + e(format.hookType) + '</strong></div>';
+    if (format.bodyStructure) h += '<div style="font-size:.74rem;color:var(--text2);padding:2px 0">Structure: ' + e(format.bodyStructure) + '</div>';
+    h += '</div>';
   }
 
-  // Key Insights
+  // ── Viral Potential ──
+  if (viral.score) {
+    h += '<div class="intel-section"><div class="intel-section-title"><span class="dot" style="background:var(--green)"></span> Viral Potential</div>';
+    h += '<div class="intel-card">';
+    h += '<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px"><div style="font-size:1.4rem;font-weight:700;color:var(--gold)">' + viral.score + '<span style="font-size:.7rem;color:var(--text3)">/10</span></div>';
+    if (viral.explanation) h += '<div style="font-size:.78rem;color:var(--text2);flex:1">' + e(viral.explanation) + '</div>';
+    h += '</div>';
+    if (viral.whatMakesItShareable) h += '<div style="font-size:.76rem;color:var(--text2)"><strong style="color:var(--text)">Shareable because:</strong> ' + e(viral.whatMakesItShareable) + '</div>';
+    h += '</div></div>';
+  }
+
+  // ── Key Insights ──
   if (insights.length) {
-    html += '<div class="intel-section"><div class="intel-section-title"><span class="dot" style="background:var(--blue)"></span> Key Insights</div>';
-    insights.slice(0, 5).forEach(function(i) {
-      const text = typeof i === 'string' ? i : i.text || i.moment || i.insight || '';
-      html += '<div class="intel-insight-item">' + escHtml(text) + '</div>';
-    });
-    html += '</div>';
+    h += '<div class="intel-section"><div class="intel-section-title"><span class="dot" style="background:var(--blue)"></span> Key Insights</div>';
+    insights.forEach(function(i) { h += '<div class="intel-insight-item">' + e(i) + '</div>'; });
+    h += '</div>';
   }
 
-  // Engagement Drivers
-  if (engDrivers.length) {
-    html += '<div class="intel-section"><div class="intel-section-title"><span class="dot" style="background:var(--green)"></span> Engagement Drivers</div>';
-    engDrivers.slice(0, 4).forEach(function(d) {
-      const text = typeof d === 'string' ? d : d.text || d.driver || '';
-      html += '<div class="intel-insight-item">' + escHtml(text) + '</div>';
-    });
-    html += '</div>';
+  // ── Emotional Triggers ──
+  if (triggers.length) {
+    h += '<div class="intel-section"><div class="intel-section-title"><span class="dot" style="background:var(--orange)"></span> Emotional Triggers</div>';
+    h += '<div style="display:flex;gap:6px;flex-wrap:wrap">';
+    triggers.forEach(function(t) { h += '<span class="tag" style="background:rgba(243,156,18,.12);color:var(--orange)">' + e(t) + '</span>'; });
+    h += '</div></div>';
   }
 
-  // Ad Breakdown
-  if (isAd || adData) {
-    html += '<div class="intel-section"><div class="intel-section-title"><span class="dot" style="background:var(--red)"></span> Ad Breakdown</div>';
-    html += '<div class="intel-ad-grid">';
-    if (adData) {
-      const fields = [
-        ['Offer', adData.offer || adData.product || ''],
-        ['Pain Point', adData.pain_point || adData.pain || ''],
-        ['CTA', adData.cta || adData.call_to_action || ''],
-        ['Score', adData.score || adData.effectiveness || '']
-      ];
-      fields.forEach(function(f) {
-        if (f[1]) {
-          html += '<div class="intel-ad-item"><div class="intel-ad-label">' + escHtml(f[0]) + '</div><div class="intel-ad-value">' + escHtml(String(f[1])) + '</div></div>';
-        }
-      });
+  // ── Key Topics ──
+  if (topics.length) {
+    h += '<div class="intel-section"><div class="intel-section-title"><span class="dot" style="background:var(--text2)"></span> Key Topics</div>';
+    h += '<div style="display:flex;gap:6px;flex-wrap:wrap">';
+    topics.forEach(function(t) { h += '<span class="tag" style="background:var(--gold-dim);color:var(--gold)">' + e(t) + '</span>'; });
+    h += '</div></div>';
+  }
+
+  // ── Ad / Type-Specific Breakdown ──
+  if (isAd && Object.keys(typeSpec).length) {
+    h += '<div class="intel-section"><div class="intel-section-title"><span class="dot" style="background:var(--red)"></span> Ad Breakdown</div>';
+    h += '<div class="intel-ad-grid">';
+    const adFields = [
+      ['First 3s', typeSpec.first3Seconds?.wordByWord || ''],
+      ['Pain Score', typeSpec.painPointScore ? typeSpec.painPointScore + '/10' : ''],
+      ['Pain Analysis', typeSpec.painPointAnalysis || ''],
+      ['Desire Triggered', typeSpec.desireTriggered || ''],
+      ['Product', typeSpec.productSold || ''],
+      ['Price', typeSpec.priceMentioned || ''],
+      ['Offer Structure', typeSpec.offerStructure || ''],
+      ['CTA', typeSpec.ctaExactWording || ''],
+      ['Urgency', typeSpec.urgencyTactics || ''],
+      ['Social Proof', typeSpec.socialProof || ''],
+      ['Effectiveness', typeSpec.overallEffectiveness ? typeSpec.overallEffectiveness + '/10' : ''],
+    ];
+    adFields.forEach(function(f) {
+      var val = typeof f[1] === 'object' ? JSON.stringify(f[1]) : String(f[1] || '');
+      if (val && val !== 'null' && val !== 'undefined' && val !== 'N/A') {
+        h += '<div class="intel-ad-item"><div class="intel-ad-label">' + e(f[0]) + '</div><div class="intel-ad-value">' + e(val) + '</div></div>';
+      }
+    });
+    h += '</div>';
+    // Why it works
+    if (typeSpec.whyItWorks3Reasons) {
+      var reasons = Array.isArray(typeSpec.whyItWorks3Reasons) ? typeSpec.whyItWorks3Reasons : [typeSpec.whyItWorks3Reasons];
+      h += '<div style="margin-top:10px"><div style="font-size:.7rem;font-weight:700;color:var(--gold);margin-bottom:4px">WHY IT WORKS</div>';
+      reasons.forEach(function(r) { h += '<div class="intel-insight-item">' + e(typeof r === 'string' ? r : JSON.stringify(r)) + '</div>'; });
+      h += '</div>';
     }
-    html += '</div></div>';
+    // What could be improved
+    if (typeSpec.whatCouldBeImproved) {
+      h += '<div style="margin-top:8px;font-size:.76rem;color:var(--text2)"><strong style="color:var(--text3)">Could improve:</strong> ' + e(typeSpec.whatCouldBeImproved) + '</div>';
+    }
+    h += '</div>';
   }
 
-  // Transcript
+  // ── Speaker Analysis ──
+  if (speaker.tone || speaker.deliveryStyle) {
+    h += '<div class="intel-section"><div class="intel-section-title"><span class="dot" style="background:var(--text2)"></span> Speaker</div>';
+    h += '<div class="intel-card" style="font-size:.78rem">';
+    if (speaker.tone) h += 'Tone: <strong>' + e(speaker.tone) + '</strong>';
+    if (speaker.deliveryStyle) h += ' · Style: <strong>' + e(speaker.deliveryStyle) + '</strong>';
+    if (speaker.credibilityScore) h += ' · Credibility: <strong>' + speaker.credibilityScore + '/10</strong>';
+    if (speaker.credibilityReason) h += '<div style="margin-top:4px;color:var(--text3)">' + e(speaker.credibilityReason) + '</div>';
+    h += '</div></div>';
+  }
+
+  // ── Action Items ──
+  if (actions.length) {
+    h += '<div class="intel-section"><div class="intel-section-title"><span class="dot" style="background:var(--green)"></span> Action Items</div>';
+    actions.forEach(function(a) { h += '<div class="intel-insight-item">' + e(a) + '</div>'; });
+    h += '</div>';
+  }
+
+  // ── Monetization Angles ──
+  if (monetization.length) {
+    h += '<div class="intel-section"><div class="intel-section-title"><span class="dot" style="background:var(--gold)"></span> Monetization Angles</div>';
+    monetization.forEach(function(m) { h += '<div class="intel-insight-item">' + e(m) + '</div>'; });
+    h += '</div>';
+  }
+
+  // ── Target Audience + Sentiment ──
+  if (audience || sentiment) {
+    h += '<div class="intel-section"><div class="intel-section-title"><span class="dot" style="background:var(--blue)"></span> Audience & Sentiment</div>';
+    h += '<div class="intel-card" style="font-size:.78rem">';
+    if (audience) h += '<div><strong>Target:</strong> ' + e(audience) + '</div>';
+    if (sentiment) h += '<div style="margin-top:4px"><strong>Sentiment:</strong> <span class="tag" style="background:rgba(46,204,113,.12);color:var(--green)">' + e(sentiment) + '</span></div>';
+    h += '</div></div>';
+  }
+
+  // ── Notable Quotes ──
+  if (quotes.length) {
+    h += '<div class="intel-section"><div class="intel-section-title"><span class="dot" style="background:var(--text3)"></span> Notable Quotes</div>';
+    quotes.slice(0, 5).forEach(function(q) { h += '<div class="intel-hook-item" style="border-left-color:var(--text3)">"' + e(q) + '"</div>'; });
+    h += '</div>';
+  }
+
+  // ── Transcript ──
   if (transcript) {
-    const preview = transcript.substring(0, 200);
-    const hasMore = transcript.length > 200;
-    html += '<div class="intel-section"><div class="intel-section-title"><span class="dot" style="background:var(--text3)"></span> Transcript</div>';
-    html += '<div class="intel-card">';
-    html += '<div class="intel-transcript-preview" id="transcript-preview">' + escHtml(preview) + (hasMore ? '...' : '') + '</div>';
+    var preview = transcript.substring(0, 200);
+    var hasMore = transcript.length > 200;
+    h += '<div class="intel-section"><div class="intel-section-title"><span class="dot" style="background:var(--text3)"></span> Transcript</div>';
+    h += '<div class="intel-card">';
+    h += '<div id="transcript-preview">' + e(preview) + (hasMore ? '...' : '') + '</div>';
     if (hasMore) {
-      html += '<div class="intel-transcript-full" id="transcript-full">' + escHtml(transcript) + '</div>';
-      html += '<span class="intel-expand-btn" onclick="toggleTranscript()">Show full transcript</span>';
+      h += '<div class="intel-transcript-full" id="transcript-full">' + e(transcript) + '</div>';
+      h += '<span class="intel-expand-btn" onclick="toggleTranscript()">Show full transcript</span>';
     }
-    html += '</div></div>';
+    h += '</div></div>';
   }
 
-  html += '</div></div>';
-  display.innerHTML = html;
+  h += '</div></div>';
+  display.innerHTML = h;
 }
 
 function toggleTranscript() {
-  const full = document.getElementById('transcript-full');
-  const preview = document.getElementById('transcript-preview');
-  const btn = full.previousElementSibling ? null : document.querySelector('.intel-expand-btn');
+  var full = document.getElementById('transcript-full');
+  var preview = document.getElementById('transcript-preview');
   if (full.classList.contains('expanded')) {
     full.classList.remove('expanded');
     preview.style.display = '';
