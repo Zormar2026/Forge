@@ -148,18 +148,7 @@ function runMigrations() {
     }
   }
 
-  // Seed demo brands
-  const bc = db.prepare('SELECT COUNT(*) as count FROM brands').get();
-  if (bc.count === 0) {
-    const brands = [
-      ['Urban Edge','Street style, redefined.','ecommerce','just starting','Gen Z streetwear enthusiasts aged 18-28','casual','#C8A84E','#0A0A0F'],
-      ['Little Explorers','Making learning an adventure!','kids_content','established','Parents of children aged 3-10','entertaining','#FF6B6B','#4ECDC4'],
-      ['FlowFix Plumbing','We fix it right the first time.','trades','established','Homeowners aged 30-60 needing plumbing services','professional','#2196F3','#FF9800'],
-    ];
-    for (const [name,tagline,niche,stage,audience,voice,c1,c2] of brands) {
-      db.prepare('INSERT INTO brands (id,name,tagline,niche,stage,target_audience,voice,primary_color,secondary_color) VALUES (?,?,?,?,?,?,?,?,?)').run(uuidv4(),name,tagline,niche,stage,audience,voice,c1,c2);
-    }
-  }
+  // No seed brands — fresh install starts blank
   if (db._save) db._save();
 }
 

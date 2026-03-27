@@ -151,12 +151,66 @@ select option{background:var(--card);color:var(--text)}
 .clear-url-btn{width:28px;height:28px;border:none;background:rgba(255,255,255,.06);color:var(--text3);cursor:pointer;display:none;align-items:center;justify-content:center;border-radius:50%;flex-shrink:0}
 .clear-url-btn:hover{color:var(--text);background:rgba(255,255,255,.12)}
 .source-input.has-value .clear-url-btn{display:flex}
-.manual-transcript-box{margin-top:12px;display:none}
+.source-tabs{margin-bottom:20px}
+
+/* Intelligence Panel */
+.intel-panel{margin-bottom:16px;animation:slideUp .3s ease}
+.intel-header{display:flex;align-items:flex-start;gap:12px;margin-bottom:14px}
+.intel-type-badge{display:inline-flex;padding:3px 10px;border-radius:20px;font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em}
+.intel-type-badge.ad{background:rgba(231,76,60,.15);color:#EC7063}
+.intel-type-badge.organic{background:rgba(46,204,113,.15);color:#58D68D}
+.intel-type-badge.educational{background:rgba(52,152,219,.15);color:#5DADE2}
+.intel-type-badge.entertainment{background:rgba(243,156,18,.15);color:#F5B041}
+.intel-type-badge.unknown{background:var(--gold-dim);color:var(--gold)}
+.intel-section{margin-bottom:14px}
+.intel-section-title{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);margin-bottom:6px;display:flex;align-items:center;gap:6px}
+.intel-section-title .dot{width:6px;height:6px;border-radius:50%;background:var(--gold)}
+.intel-card{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px;font-size:.8rem;line-height:1.6;color:var(--text2)}
+.intel-hook-item{padding:8px 12px;background:var(--bg);border-left:2px solid var(--gold);border-radius:0 var(--radius-xs) var(--radius-xs) 0;margin-bottom:6px;font-size:.8rem;font-style:italic;color:var(--text)}
+.intel-insight-item{display:flex;align-items:flex-start;gap:8px;padding:4px 0;font-size:.78rem;color:var(--text2)}
+.intel-insight-item::before{content:'';width:5px;height:5px;border-radius:50%;background:var(--gold);margin-top:7px;flex-shrink:0}
+.intel-ad-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.intel-ad-item{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px}
+.intel-ad-label{font-size:.65rem;font-weight:700;text-transform:uppercase;color:var(--text3);margin-bottom:3px}
+.intel-ad-value{font-size:.78rem;color:var(--text)}
+.intel-transcript-preview{font-size:.78rem;color:var(--text2);line-height:1.6;cursor:pointer}
+.intel-transcript-full{display:none;font-size:.78rem;color:var(--text2);line-height:1.6;max-height:300px;overflow-y:auto}
+.intel-transcript-full.expanded{display:block}
+.intel-expand-btn{font-size:.7rem;color:var(--gold);cursor:pointer;font-weight:600;margin-top:4px;display:inline-block}
+.intel-expand-btn:hover{text-decoration:underline}
+
+/* Brand Selector Step */
+.forge-step{display:none;margin-top:16px;animation:slideUp .3s ease}
+.forge-step.visible{display:block}
+.forge-brand-select{margin-bottom:12px}
+.forge-brand-select select{width:100%}
+.quick-brand-setup{margin-bottom:12px}
+.quick-brand-setup .input-group{margin-bottom:10px}
+.quick-brand-setup .input-group label{font-size:.72rem}
+.quick-brand-setup .input-group input{padding:8px 12px;font-size:.82rem}
+
+/* Manual Transcript */
+.manual-transcript-box{margin-top:12px;display:none;animation:slideUp .3s ease}
 .manual-transcript-box.visible{display:block}
 .manual-transcript-box textarea{width:100%;min-height:100px;resize:vertical}
 .transcript-warning{padding:12px 16px;background:rgba(243,156,18,.08);border:1px solid rgba(243,156,18,.2);border-radius:var(--radius-sm);margin-bottom:12px;font-size:.8rem;color:var(--orange);display:flex;align-items:flex-start;gap:8px;line-height:1.5}
 .transcript-warning svg{flex-shrink:0;margin-top:1px}
-.source-tabs{margin-bottom:20px}
+
+/* Extraction Progress */
+.extract-progress{display:none;margin-bottom:16px;text-align:center;padding:30px 20px}
+.extract-progress.visible{display:block}
+.extract-spinner{width:40px;height:40px;border:3px solid var(--border);border-top-color:var(--gold);border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 12px}
+.extract-progress-text{font-size:.82rem;color:var(--text2)}
+.extract-progress-sub{font-size:.7rem;color:var(--text3);margin-top:4px}
+
+/* Forge suggestion */
+.forge-suggestion{padding:10px 14px;background:var(--gold-glow);border:1px solid rgba(200,168,78,.15);border-radius:var(--radius-sm);font-size:.76rem;color:var(--gold);margin-top:8px;line-height:1.5;display:flex;align-items:flex-start;gap:8px}
+.forge-suggestion svg{flex-shrink:0;margin-top:1px}
+
+/* Save brand prompt */
+.save-brand-prompt{padding:14px;background:var(--card);border:1px solid var(--border2);border-radius:var(--radius-sm);margin-top:12px;animation:slideUp .3s ease}
+.save-brand-prompt p{font-size:.8rem;color:var(--text2);margin-bottom:10px}
+.save-brand-prompt .btn-row{display:flex;gap:8px}
 
 /* Script Editor */
 .script-editor{display:flex;flex-direction:column;height:100%}
@@ -413,26 +467,80 @@ select option{background:var(--card);color:var(--text)}
 
           <!-- From Video -->
           <div id="source-video" class="source-mode">
+            <!-- Step 1: URL Input -->
             <div class="source-input" id="source-input-wrapper">
               <input type="url" id="extract-url" placeholder="Paste any video URL..." oninput="toggleClearBtn()">
               <button class="clear-url-btn" id="clear-url-btn" onclick="clearForge()" title="Clear everything">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
               </button>
-              <button class="btn btn-gold" id="extract-btn" onclick="forgeFromVideo()">
+              <button class="btn btn-gold" id="extract-btn" onclick="extractVideo()">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
                 Extract
               </button>
             </div>
+
+            <!-- Extraction Progress -->
+            <div class="extract-progress" id="extract-progress">
+              <div class="extract-spinner"></div>
+              <div class="extract-progress-text">Analyzing video...</div>
+              <div class="extract-progress-sub">Extracting intelligence, hooks, and transcript</div>
+            </div>
+
+            <!-- Step 2: Intelligence Display -->
             <div id="intelligence-display"></div>
+
+            <!-- Manual Transcript (if none found) -->
             <div class="manual-transcript-box" id="manual-transcript-box">
               <div class="transcript-warning">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
                 Could not transcribe this video. Try a YouTube URL or paste the transcript manually below.
               </div>
               <textarea id="manual-transcript" placeholder="Paste the video transcript here..."></textarea>
-              <button class="btn btn-gold" style="margin-top:8px;width:100%" onclick="forgeWithManualTranscript()">
+              <button class="btn btn-gold" style="margin-top:8px;width:100%" onclick="useManualTranscript()">
+                Use This Transcript
+              </button>
+            </div>
+
+            <!-- Step 3: Brand Selector + Forge -->
+            <div class="forge-step" id="forge-step">
+              <div class="intel-section-title"><span class="dot"></span> Choose Brand</div>
+
+              <!-- Brand dropdown (shown when brands exist) -->
+              <div class="forge-brand-select" id="forge-brand-select">
+                <select id="forge-brand-picker">
+                  <option value="">Select a brand...</option>
+                </select>
+              </div>
+
+              <!-- Quick setup (shown when no brands OR user picks "no brand") -->
+              <div class="quick-brand-setup" id="quick-brand-setup" style="display:none">
+                <div class="input-group">
+                  <label>What's your niche?</label>
+                  <input type="text" id="quick-niche" placeholder="e.g., Fitness, E-commerce, SaaS...">
+                </div>
+                <div class="input-group">
+                  <label>What are you selling?</label>
+                  <input type="text" id="quick-product" placeholder="e.g., Online coaching, Supplements...">
+                </div>
+                <div class="input-group">
+                  <label>Who's your audience?</label>
+                  <input type="text" id="quick-audience" placeholder="e.g., Women 25-40 wanting to get fit...">
+                </div>
+              </div>
+
+              <div class="input-group">
+                <label>Funnel Stage</label>
+                <select id="forge-funnel">
+                  <option value="awareness">Awareness — Top of funnel</option>
+                  <option value="interest">Interest — Building curiosity</option>
+                  <option value="desire">Desire — Creating want</option>
+                  <option value="action">Action — Drive conversion</option>
+                </select>
+              </div>
+
+              <button class="btn btn-gold" style="width:100%" id="forge-it-btn" onclick="forgeIt()">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-                Forge with Transcript
+                Forge It
               </button>
             </div>
           </div>
@@ -804,7 +912,12 @@ async function loadBrands() {
   store.brands = await api('/api/brands');
   renderBrandDropdown();
   if (store.brands.length > 0 && !store.activeBrand) {
-    selectBrand(store.brands[0]);
+    const lastId = localStorage.getItem('forge_last_brand');
+    const lastBrand = lastId ? store.brands.find(b => b.id === lastId) : null;
+    selectBrand(lastBrand || store.brands[0]);
+  }
+  if (store.brands.length === 0) {
+    document.getElementById('brand-name-display').textContent = 'No Brands Yet';
   }
 }
 
@@ -813,6 +926,7 @@ function selectBrand(brand) {
   document.getElementById('brand-name-display').textContent = brand.name;
   document.getElementById('brand-dot').style.background = brand.primary_color || '#C8A84E';
   document.getElementById('brand-dropdown').classList.remove('open');
+  localStorage.setItem('forge_last_brand', brand.id);
 }
 
 function renderBrandDropdown() {
@@ -929,9 +1043,13 @@ function clearForge() {
   document.getElementById('extract-url').value = '';
   toggleClearBtn();
   document.getElementById('intelligence-display').textContent = '';
-  const mtb = document.getElementById('manual-transcript-box');
-  mtb.classList.remove('visible');
+  document.getElementById('manual-transcript-box').classList.remove('visible');
   document.getElementById('manual-transcript').value = '';
+  document.getElementById('forge-step').classList.remove('visible');
+  document.getElementById('extract-progress').classList.remove('visible');
+  store._intelligence = null;
+  store._sourceUrl = null;
+  store._quickBrandMode = false;
   // Reset editor
   const editor = document.getElementById('editor-content');
   editor.textContent = '';
@@ -954,46 +1072,152 @@ function clearForge() {
   store.currentScript = null;
 }
 
-// ─── Forge from Video ───
-async function forgeFromVideo() {
+// ─── Step 1: Extract Video (no brand needed) ───
+async function extractVideo() {
   const url = document.getElementById('extract-url').value.trim();
   if (!url) return toast('Paste a video URL', 'error');
-  if (!store.activeBrand) return toast('Select a brand first', 'error');
-  setLoading(true);
+
   const btn = document.getElementById('extract-btn');
   btn.disabled = true;
-  btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="animation:spin 1s linear infinite"><path d="M21 12a9 9 0 11-6.219-8.56"/></svg> Extracting...';
-
-  // Hide manual transcript box from any previous attempt
+  document.getElementById('extract-progress').classList.add('visible');
+  document.getElementById('intelligence-display').textContent = '';
+  document.getElementById('forge-step').classList.remove('visible');
   document.getElementById('manual-transcript-box').classList.remove('visible');
 
   try {
     const intelligence = await api('/api/intelligence', { method: 'POST', body: { url } });
-    renderIntelligence(intelligence);
+    store._intelligence = intelligence;
+    store._sourceUrl = url;
 
-    // Check if transcript exists
+    renderFullIntelligence(intelligence);
+
+    // Check transcript
     const transcript = intelligence.transcript || intelligence.text || '';
     if (!transcript) {
-      // No transcript — show manual input instead of silently generating bad content
       document.getElementById('manual-transcript-box').classList.add('visible');
-      store._partialIntelligence = intelligence;
-      store._sourceUrl = url;
       toast('No transcript found — paste it manually or try a YouTube URL', 'error');
+    }
 
-      btn.disabled = false;
-      btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> Extract';
-      setLoading(false);
-      return;
+    // Show brand selector step
+    populateForgeBrandPicker();
+    document.getElementById('forge-step').classList.add('visible');
+
+  } catch (e) {}
+
+  btn.disabled = false;
+  document.getElementById('extract-progress').classList.remove('visible');
+}
+
+// ─── Use Manual Transcript ───
+function useManualTranscript() {
+  const transcript = document.getElementById('manual-transcript').value.trim();
+  if (!transcript) return toast('Paste the transcript first', 'error');
+  if (store._intelligence) {
+    store._intelligence.transcript = transcript;
+  } else {
+    store._intelligence = { transcript };
+  }
+  document.getElementById('manual-transcript-box').classList.remove('visible');
+  renderFullIntelligence(store._intelligence);
+  toast('Transcript added', 'success');
+}
+
+// ─── Populate Brand Picker ───
+function populateForgeBrandPicker() {
+  const picker = document.getElementById('forge-brand-picker');
+  const lastBrand = localStorage.getItem('forge_last_brand');
+  let html = '<option value="">Select a brand...</option>';
+  store.brands.forEach(b => {
+    const selected = b.id === lastBrand ? ' selected' : '';
+    html += '<option value="' + b.id + '"' + selected + '>' + escHtml(b.name) + '</option>';
+  });
+  html += '<option value="__none__">No brand — just improve this script</option>';
+  html += '<option value="__new__">+ Add New Brand</option>';
+  picker.innerHTML = html;
+
+  // Show quick setup or brand dropdown based on brand count
+  if (store.brands.length === 0) {
+    document.getElementById('forge-brand-select').style.display = 'none';
+    document.getElementById('quick-brand-setup').style.display = 'block';
+    store._quickBrandMode = true;
+  } else {
+    document.getElementById('forge-brand-select').style.display = 'block';
+    document.getElementById('quick-brand-setup').style.display = 'none';
+    store._quickBrandMode = false;
+  }
+
+  picker.onchange = function() {
+    if (this.value === '__new__') {
+      openNewBrandModal();
+      this.value = '';
+    } else if (this.value === '__none__') {
+      document.getElementById('quick-brand-setup').style.display = 'block';
+      store._quickBrandMode = true;
+    } else {
+      document.getElementById('quick-brand-setup').style.display = 'none';
+      store._quickBrandMode = false;
+    }
+  };
+}
+
+// ─── Step 3: Forge It ───
+async function forgeIt() {
+  const intelligence = store._intelligence;
+  if (!intelligence) return toast('Extract a video first', 'error');
+
+  let brandId = null;
+  let quickBrand = null;
+
+  if (store._quickBrandMode) {
+    const niche = document.getElementById('quick-niche').value.trim();
+    const product = document.getElementById('quick-product').value.trim();
+    const audience = document.getElementById('quick-audience').value.trim();
+    if (!niche && !product && !audience) return toast('Fill in at least one field', 'error');
+    quickBrand = { niche, product, audience };
+  } else {
+    const picker = document.getElementById('forge-brand-picker');
+    brandId = picker.value;
+    if (!brandId || brandId === '__none__') {
+      document.getElementById('quick-brand-setup').style.display = 'block';
+      store._quickBrandMode = true;
+      return toast('Fill in the quick brand details or select a brand', 'error');
+    }
+    // Remember last used brand
+    localStorage.setItem('forge_last_brand', brandId);
+  }
+
+  setLoading(true);
+  const btn = document.getElementById('forge-it-btn');
+  btn.disabled = true;
+
+  try {
+    let body;
+    if (quickBrand) {
+      // Create a temporary brand for this session
+      const tempBrand = await api('/api/brands', {
+        method: 'POST',
+        body: {
+          name: quickBrand.niche || 'My Brand',
+          niche: quickBrand.niche,
+          product_name: quickBrand.product,
+          target_audience: quickBrand.audience
+        }
+      });
+      brandId = tempBrand.id;
+      store.brands.push(tempBrand);
+      selectBrand(tempBrand);
+      renderBrandDropdown();
+      store._tempBrandId = tempBrand.id;
     }
 
     const result = await api('/api/rebuild', {
       method: 'POST',
       body: {
-        brand_id: store.activeBrand.id,
+        brand_id: brandId,
         intelligence,
-        source_url: url,
+        source_url: store._sourceUrl || '',
         source_type: 'video',
-        funnel_stage: document.getElementById('scratch-funnel')?.value || 'awareness'
+        funnel_stage: document.getElementById('forge-funnel').value
       }
     });
 
@@ -1005,54 +1229,125 @@ async function forgeFromVideo() {
   } catch (e) {}
 
   btn.disabled = false;
-  btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> Extract';
   setLoading(false);
 }
 
-// ─── Forge with Manual Transcript ───
-async function forgeWithManualTranscript() {
-  const transcript = document.getElementById('manual-transcript').value.trim();
-  if (!transcript) return toast('Paste the transcript first', 'error');
-  if (!store.activeBrand) return toast('Select a brand first', 'error');
-  setLoading(true);
-
-  try {
-    const intelligence = store._partialIntelligence || {};
-    intelligence.transcript = transcript;
-
-    const result = await api('/api/rebuild', {
-      method: 'POST',
-      body: {
-        brand_id: store.activeBrand.id,
-        intelligence,
-        source_url: store._sourceUrl || '',
-        source_type: 'video',
-        funnel_stage: document.getElementById('scratch-funnel')?.value || 'awareness'
-      }
-    });
-
-    store.currentContent = result.content;
-    store.currentScript = result.script;
-    renderScriptEditor(result.script);
-    renderPreview(result.script);
-    document.getElementById('manual-transcript-box').classList.remove('visible');
-    toast('Content forged with manual transcript', 'success');
-  } catch (e) {}
-
-  setLoading(false);
-}
-
-function renderIntelligence(data) {
+// ─── Render Full Intelligence Panel ───
+function renderFullIntelligence(data) {
   const display = document.getElementById('intelligence-display');
   const title = data.title || data.metadata?.title || 'Video Intelligence';
-  const transcript = data.transcript || data.text || '';
+  const source = data.source || data.platform || '';
+  const contentType = (data.content_type || data.type || 'unknown').toLowerCase();
+  const summary = data.summary || data.description || '';
   const hooks = data.hooks || [];
-  display.innerHTML = `
-    <div class="card" style="margin-bottom:12px">
-      <div class="card-title" style="margin-bottom:8px">${escHtml(title)}</div>
-      ${hooks.length ? `<div style="margin-bottom:8px"><div style="font-size:.7rem;font-weight:700;color:var(--gold);margin-bottom:4px">HOOKS DETECTED</div>${hooks.slice(0,3).map(h => `<div style="font-size:.78rem;padding:4px 0;border-bottom:1px solid var(--border)">"${escHtml(typeof h === 'string' ? h : h.text || '')}"</div>`).join('')}</div>` : ''}
-      ${transcript ? `<div><div style="font-size:.7rem;font-weight:700;color:var(--text3);margin-bottom:4px">TRANSCRIPT</div><div style="font-size:.78rem;color:var(--text2);max-height:200px;overflow-y:auto;line-height:1.6">${escHtml(transcript.substring(0, 800))}${transcript.length > 800 ? '...' : ''}</div></div>` : ''}
-    </div>`;
+  const hookAnalysis = data.hook_analysis || data.hook_why || '';
+  const insights = data.key_insights || data.insights || data.key_moments || [];
+  const transcript = data.transcript || data.text || '';
+  const isAd = contentType === 'ad' || data.is_ad;
+  const adData = data.ad_breakdown || data.ad_analysis || null;
+  const engDrivers = data.engagement_drivers || [];
+  const whyItWorks = data.why_it_works || '';
+
+  const badgeClass = isAd ? 'ad' : (contentType === 'educational' ? 'educational' : contentType === 'entertainment' ? 'entertainment' : contentType === 'organic' ? 'organic' : 'unknown');
+
+  let html = '<div class="intel-panel"><div class="card" style="padding:16px">';
+
+  // Header: title + type badge + source
+  html += '<div class="intel-header"><div style="flex:1"><div class="card-title" style="margin-bottom:6px">' + escHtml(title) + '</div>';
+  html += '<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">';
+  html += '<span class="intel-type-badge ' + badgeClass + '">' + escHtml(contentType || 'video') + '</span>';
+  if (source) html += '<span style="font-size:.7rem;color:var(--text3)">' + escHtml(source) + '</span>';
+  html += '</div></div></div>';
+
+  // Summary
+  if (summary) {
+    html += '<div class="intel-section"><div class="intel-section-title"><span class="dot"></span> Summary</div>';
+    html += '<div class="intel-card">' + escHtml(summary) + '</div></div>';
+  }
+
+  // Hook Analysis
+  if (hooks.length) {
+    html += '<div class="intel-section"><div class="intel-section-title"><span class="dot" style="background:var(--gold)"></span> Hook Analysis</div>';
+    hooks.slice(0, 3).forEach(function(h) {
+      const hookText = typeof h === 'string' ? h : h.text || h.hook || '';
+      html += '<div class="intel-hook-item">"' + escHtml(hookText) + '"</div>';
+    });
+    if (hookAnalysis) html += '<div style="font-size:.76rem;color:var(--text2);margin-top:6px;line-height:1.5;padding:0 4px">' + escHtml(hookAnalysis) + '</div>';
+    if (whyItWorks) html += '<div style="font-size:.76rem;color:var(--text2);margin-top:4px;padding:0 4px"><strong style="color:var(--gold)">Why it works:</strong> ' + escHtml(whyItWorks) + '</div>';
+    html += '</div>';
+  }
+
+  // Key Insights
+  if (insights.length) {
+    html += '<div class="intel-section"><div class="intel-section-title"><span class="dot" style="background:var(--blue)"></span> Key Insights</div>';
+    insights.slice(0, 5).forEach(function(i) {
+      const text = typeof i === 'string' ? i : i.text || i.moment || i.insight || '';
+      html += '<div class="intel-insight-item">' + escHtml(text) + '</div>';
+    });
+    html += '</div>';
+  }
+
+  // Engagement Drivers
+  if (engDrivers.length) {
+    html += '<div class="intel-section"><div class="intel-section-title"><span class="dot" style="background:var(--green)"></span> Engagement Drivers</div>';
+    engDrivers.slice(0, 4).forEach(function(d) {
+      const text = typeof d === 'string' ? d : d.text || d.driver || '';
+      html += '<div class="intel-insight-item">' + escHtml(text) + '</div>';
+    });
+    html += '</div>';
+  }
+
+  // Ad Breakdown
+  if (isAd || adData) {
+    html += '<div class="intel-section"><div class="intel-section-title"><span class="dot" style="background:var(--red)"></span> Ad Breakdown</div>';
+    html += '<div class="intel-ad-grid">';
+    if (adData) {
+      const fields = [
+        ['Offer', adData.offer || adData.product || ''],
+        ['Pain Point', adData.pain_point || adData.pain || ''],
+        ['CTA', adData.cta || adData.call_to_action || ''],
+        ['Score', adData.score || adData.effectiveness || '']
+      ];
+      fields.forEach(function(f) {
+        if (f[1]) {
+          html += '<div class="intel-ad-item"><div class="intel-ad-label">' + escHtml(f[0]) + '</div><div class="intel-ad-value">' + escHtml(String(f[1])) + '</div></div>';
+        }
+      });
+    }
+    html += '</div></div>';
+  }
+
+  // Transcript
+  if (transcript) {
+    const preview = transcript.substring(0, 200);
+    const hasMore = transcript.length > 200;
+    html += '<div class="intel-section"><div class="intel-section-title"><span class="dot" style="background:var(--text3)"></span> Transcript</div>';
+    html += '<div class="intel-card">';
+    html += '<div class="intel-transcript-preview" id="transcript-preview">' + escHtml(preview) + (hasMore ? '...' : '') + '</div>';
+    if (hasMore) {
+      html += '<div class="intel-transcript-full" id="transcript-full">' + escHtml(transcript) + '</div>';
+      html += '<span class="intel-expand-btn" onclick="toggleTranscript()">Show full transcript</span>';
+    }
+    html += '</div></div>';
+  }
+
+  html += '</div></div>';
+  display.innerHTML = html;
+}
+
+function toggleTranscript() {
+  const full = document.getElementById('transcript-full');
+  const preview = document.getElementById('transcript-preview');
+  const btn = full.previousElementSibling ? null : document.querySelector('.intel-expand-btn');
+  if (full.classList.contains('expanded')) {
+    full.classList.remove('expanded');
+    preview.style.display = '';
+    document.querySelector('.intel-expand-btn').textContent = 'Show full transcript';
+  } else {
+    full.classList.add('expanded');
+    preview.style.display = 'none';
+    document.querySelector('.intel-expand-btn').textContent = 'Show less';
+  }
 }
 
 // ─── Forge from Scratch ───
@@ -1123,13 +1418,14 @@ function renderScriptEditor(script) {
     <div class="script-actions">
       <button class="btn btn-gold" style="flex:1" onclick="approveScript()">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-        Approve & Save
+        Approve & Create
       </button>
       <button class="btn btn-outline" onclick="openScheduleModal()">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/></svg>
         Schedule
       </button>
-    </div>`;
+    </div>
+    <div id="save-brand-prompt"></div>`;
 }
 
 function updatePreview() {
@@ -1206,7 +1502,38 @@ async function approveScript() {
       body: { rebuilt_script: JSON.stringify(script), status: 'approved' }
     });
     toast('Script approved and saved', 'success');
+
+    // If this was a quick brand, ask to save it
+    if (store._tempBrandId && store.activeBrand?.id === store._tempBrandId) {
+      const prompt = document.getElementById('save-brand-prompt');
+      if (prompt) {
+        prompt.innerHTML = '<div class="save-brand-prompt"><p>Want to save this as a brand for next time?</p><div class="btn-row"><button class="btn btn-gold btn-sm" onclick="keepTempBrand()">Yes, keep it</button><button class="btn btn-outline btn-sm" onclick="discardTempBrand()">No thanks</button></div></div>';
+      }
+    }
   } catch (e) {}
+}
+
+function keepTempBrand() {
+  store._tempBrandId = null;
+  const prompt = document.getElementById('save-brand-prompt');
+  if (prompt) prompt.textContent = '';
+  toast('Brand saved for future use', 'success');
+  navigateTo('settings');
+  if (store.activeBrand) editBrand(store.activeBrand.id);
+}
+
+async function discardTempBrand() {
+  const id = store._tempBrandId;
+  store._tempBrandId = null;
+  const prompt = document.getElementById('save-brand-prompt');
+  if (prompt) prompt.textContent = '';
+  if (id) {
+    try {
+      await api('/api/brands/' + id, { method: 'DELETE' });
+      store.brands = store.brands.filter(function(b) { return b.id !== id; });
+      renderBrandDropdown();
+    } catch (e) {}
+  }
 }
 
 function openScheduleModal() {
