@@ -28,12 +28,20 @@ async function analyze(url) {
       return { success: false, error: `Extract API returned ${response.status}: ${text}` };
     }
 
-    const data = await response.json();
+    const raw = await response.json();
 
-    // Log the full response for debugging
-    console.log(`[Extract] Response keys: ${Object.keys(data).join(', ')}`);
+    // Log the full raw response for debugging
+    console.log(`[Extract] Raw response keys: ${Object.keys(raw).join(', ')}`);
+    console.log(`[Extract] Raw response: ${JSON.stringify(raw).substring(0, 500)}`);
+
+    // Extract API may wrap data in { success, data: {...} } — unwrap it
+    const data = (raw.data && typeof raw.data === 'object' && !Array.isArray(raw.data)) ? raw.data : raw;
+
+    console.log(`[Extract] Unwrapped keys: ${Object.keys(data).join(', ')}`);
     console.log(`[Extract] Transcript length: ${(data.transcript || data.text || '').length}`);
     console.log(`[Extract] Has hooks: ${!!(data.hooks && data.hooks.length)}`);
+    console.log(`[Extract] Content type: ${data.content_type || data.type || 'unknown'}`);
+    console.log(`[Extract] Summary: ${(data.summary || '').substring(0, 100)}`);
 
     // Flag whether transcript is present
     const transcript = data.transcript || data.text || '';

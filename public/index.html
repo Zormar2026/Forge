@@ -1085,7 +1085,15 @@ async function extractVideo() {
   document.getElementById('manual-transcript-box').classList.remove('visible');
 
   try {
-    const intelligence = await api('/api/intelligence', { method: 'POST', body: { url } });
+    let intelligence = await api('/api/intelligence', { method: 'POST', body: { url } });
+
+    // Safety: unwrap nested { success, data } if Extract API double-wraps
+    if (intelligence && intelligence.data && typeof intelligence.data === 'object' && !Array.isArray(intelligence.data) && (intelligence.success !== undefined)) {
+      console.log('[Forge] Unwrapping nested intelligence response');
+      intelligence = intelligence.data;
+    }
+    console.log('[Forge] Intelligence keys:', Object.keys(intelligence || {}).join(', '));
+
     store._intelligence = intelligence;
     store._sourceUrl = url;
 
@@ -1235,18 +1243,24 @@ async function forgeIt() {
 // ─── Render Full Intelligence Panel ───
 function renderFullIntelligence(data) {
   const display = document.getElementById('intelligence-display');
-  const title = data.title || data.metadata?.title || 'Video Intelligence';
-  const source = data.source || data.platform || '';
-  const contentType = (data.content_type || data.type || 'unknown').toLowerCase();
-  const summary = data.summary || data.description || '';
-  const hooks = data.hooks || [];
-  const hookAnalysis = data.hook_analysis || data.hook_why || '';
-  const insights = data.key_insights || data.insights || data.key_moments || [];
-  const transcript = data.transcript || data.text || '';
+  if (!data || typeof data !== 'object') { display.textContent = 'No intelligence data'; return; }
+
+  // Safely extract string fields (stringify objects)
+  function str(v) { if (!v) return ''; if (typeof v === 'string') return v; return JSON.stringify(v); }
+  function arr(v) { if (Array.isArray(v)) return v; if (!v) return []; return []; }
+
+  const title = str(data.title) || str(data.metadata?.title) || 'Video Intelligence';
+  const source = str(data.source || data.platform || '');
+  const contentType = str(data.content_type || data.type || 'unknown').toLowerCase();
+  const summary = str(data.summary || data.description || '');
+  const hooks = arr(data.hooks);
+  const hookAnalysis = str(data.hook_analysis || data.hook_why || '');
+  const insights = arr(data.key_insights || data.insights || data.key_moments);
+  const transcript = str(data.transcript || data.text || '');
   const isAd = contentType === 'ad' || data.is_ad;
   const adData = data.ad_breakdown || data.ad_analysis || null;
-  const engDrivers = data.engagement_drivers || [];
-  const whyItWorks = data.why_it_works || '';
+  const engDrivers = arr(data.engagement_drivers);
+  const whyItWorks = str(data.why_it_works || data.structure || '');
 
   const badgeClass = isAd ? 'ad' : (contentType === 'educational' ? 'educational' : contentType === 'entertainment' ? 'entertainment' : contentType === 'organic' ? 'organic' : 'unknown');
 
@@ -1810,7 +1824,7 @@ async function deleteBrand(id) {
 }
 
 // ─── Utility Functions ───
-function escHtml(s) { const d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
+function escHtml(s) { if (s && typeof s === 'object') s = JSON.stringify(s); const d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
 function escAttr(s) { return (s || '').replace(/"/g, '&quot;').replace(/</g, '&lt;'); }
 function countWords(s) { return ((s.hook || '') + ' ' + (s.body || '') + ' ' + (s.cta || '')).trim().split(/\s+/).filter(Boolean).length; }
 function estimateLength(s) { const w = countWords(s); const secs = Math.round(w / 2.5); if (secs < 60) return `${secs}s`; return `${Math.floor(secs/60)}m ${secs%60}s`; }
