@@ -146,8 +146,16 @@ select option{background:var(--card);color:var(--text)}
 .studio-panel-header{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text3);margin-bottom:16px;display:flex;align-items:center;justify-content:space-between}
 
 /* Source Panel */
-.source-input{display:flex;gap:8px;margin-bottom:20px}
+.source-input{display:flex;gap:8px;margin-bottom:20px;align-items:center}
 .source-input input{flex:1}
+.clear-url-btn{width:28px;height:28px;border:none;background:rgba(255,255,255,.06);color:var(--text3);cursor:pointer;display:none;align-items:center;justify-content:center;border-radius:50%;flex-shrink:0}
+.clear-url-btn:hover{color:var(--text);background:rgba(255,255,255,.12)}
+.source-input.has-value .clear-url-btn{display:flex}
+.manual-transcript-box{margin-top:12px;display:none}
+.manual-transcript-box.visible{display:block}
+.manual-transcript-box textarea{width:100%;min-height:100px;resize:vertical}
+.transcript-warning{padding:12px 16px;background:rgba(243,156,18,.08);border:1px solid rgba(243,156,18,.2);border-radius:var(--radius-sm);margin-bottom:12px;font-size:.8rem;color:var(--orange);display:flex;align-items:flex-start;gap:8px;line-height:1.5}
+.transcript-warning svg{flex-shrink:0;margin-top:1px}
 .source-tabs{margin-bottom:20px}
 
 /* Script Editor */
@@ -405,14 +413,28 @@ select option{background:var(--card);color:var(--text)}
 
           <!-- From Video -->
           <div id="source-video" class="source-mode">
-            <div class="source-input">
-              <input type="url" id="extract-url" placeholder="Paste any video URL...">
+            <div class="source-input" id="source-input-wrapper">
+              <input type="url" id="extract-url" placeholder="Paste any video URL..." oninput="toggleClearBtn()">
+              <button class="clear-url-btn" id="clear-url-btn" onclick="clearForge()" title="Clear everything">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              </button>
               <button class="btn btn-gold" id="extract-btn" onclick="forgeFromVideo()">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
                 Extract
               </button>
             </div>
             <div id="intelligence-display"></div>
+            <div class="manual-transcript-box" id="manual-transcript-box">
+              <div class="transcript-warning">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                Could not transcribe this video. Try a YouTube URL or paste the transcript manually below.
+              </div>
+              <textarea id="manual-transcript" placeholder="Paste the video transcript here..."></textarea>
+              <button class="btn btn-gold" style="margin-top:8px;width:100%" onclick="forgeWithManualTranscript()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                Forge with Transcript
+              </button>
+            </div>
           </div>
 
           <!-- From Template -->
@@ -895,6 +917,43 @@ document.querySelectorAll('.source-tabs .tab').forEach(tab => {
   });
 });
 
+// ─── Clear / Reset ───
+function toggleClearBtn() {
+  const wrapper = document.getElementById('source-input-wrapper');
+  const input = document.getElementById('extract-url');
+  if (input.value.trim()) wrapper.classList.add('has-value');
+  else wrapper.classList.remove('has-value');
+}
+
+function clearForge() {
+  document.getElementById('extract-url').value = '';
+  toggleClearBtn();
+  document.getElementById('intelligence-display').textContent = '';
+  const mtb = document.getElementById('manual-transcript-box');
+  mtb.classList.remove('visible');
+  document.getElementById('manual-transcript').value = '';
+  // Reset editor
+  const editor = document.getElementById('editor-content');
+  editor.textContent = '';
+  const emptyState = document.createElement('div');
+  emptyState.className = 'empty-state';
+  emptyState.innerHTML = '<div class="empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></div><div class="empty-title">Ready to Forge</div><div class="empty-text">Paste a video URL, pick a template, or describe what you want. Forge will create scroll-stopping content tuned to your brand.</div>';
+  editor.appendChild(emptyState);
+  // Reset preview
+  const preview = document.getElementById('preview-content');
+  preview.textContent = '';
+  const previewCard = document.createElement('div');
+  previewCard.className = 'preview-card';
+  previewCard.innerHTML = '<div class="preview-phone"><div class="phone-text"><div style="color:var(--text3);font-size:.8rem">Preview will appear here</div></div></div>';
+  preview.appendChild(previewCard);
+  const icons = document.createElement('div');
+  icons.className = 'preview-platform-icons';
+  icons.innerHTML = '<div class="preview-platform-icon active" title="TikTok">TT</div><div class="preview-platform-icon" title="Instagram Reels">IG</div><div class="preview-platform-icon" title="YouTube Shorts">YT</div><div class="preview-platform-icon" title="Twitter/X">X</div>';
+  preview.appendChild(icons);
+  store.currentContent = null;
+  store.currentScript = null;
+}
+
 // ─── Forge from Video ───
 async function forgeFromVideo() {
   const url = document.getElementById('extract-url').value.trim();
@@ -905,9 +964,27 @@ async function forgeFromVideo() {
   btn.disabled = true;
   btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="animation:spin 1s linear infinite"><path d="M21 12a9 9 0 11-6.219-8.56"/></svg> Extracting...';
 
+  // Hide manual transcript box from any previous attempt
+  document.getElementById('manual-transcript-box').classList.remove('visible');
+
   try {
     const intelligence = await api('/api/intelligence', { method: 'POST', body: { url } });
     renderIntelligence(intelligence);
+
+    // Check if transcript exists
+    const transcript = intelligence.transcript || intelligence.text || '';
+    if (!transcript) {
+      // No transcript — show manual input instead of silently generating bad content
+      document.getElementById('manual-transcript-box').classList.add('visible');
+      store._partialIntelligence = intelligence;
+      store._sourceUrl = url;
+      toast('No transcript found — paste it manually or try a YouTube URL', 'error');
+
+      btn.disabled = false;
+      btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> Extract';
+      setLoading(false);
+      return;
+    }
 
     const result = await api('/api/rebuild', {
       method: 'POST',
@@ -929,6 +1006,39 @@ async function forgeFromVideo() {
 
   btn.disabled = false;
   btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> Extract';
+  setLoading(false);
+}
+
+// ─── Forge with Manual Transcript ───
+async function forgeWithManualTranscript() {
+  const transcript = document.getElementById('manual-transcript').value.trim();
+  if (!transcript) return toast('Paste the transcript first', 'error');
+  if (!store.activeBrand) return toast('Select a brand first', 'error');
+  setLoading(true);
+
+  try {
+    const intelligence = store._partialIntelligence || {};
+    intelligence.transcript = transcript;
+
+    const result = await api('/api/rebuild', {
+      method: 'POST',
+      body: {
+        brand_id: store.activeBrand.id,
+        intelligence,
+        source_url: store._sourceUrl || '',
+        source_type: 'video',
+        funnel_stage: document.getElementById('scratch-funnel')?.value || 'awareness'
+      }
+    });
+
+    store.currentContent = result.content;
+    store.currentScript = result.script;
+    renderScriptEditor(result.script);
+    renderPreview(result.script);
+    document.getElementById('manual-transcript-box').classList.remove('visible');
+    toast('Content forged with manual transcript', 'success');
+  } catch (e) {}
+
   setLoading(false);
 }
 

@@ -52,6 +52,7 @@ CTA STYLE: ${ctaMap[funnel_stage] || ctaMap.awareness}
 `;
 
   if (intelligence) {
+    const transcript = intelligence.transcript || intelligence.text || '';
     userPrompt += `
 VIRAL REFERENCE (adapt this structure for the brand above):
 - Original Hook: ${intelligence.hook || 'N/A'}
@@ -60,6 +61,9 @@ VIRAL REFERENCE (adapt this structure for the brand above):
 - Key Moments: ${JSON.stringify(intelligence.key_moments || [])}
 - Engagement Drivers: ${JSON.stringify(intelligence.engagement_drivers || [])}
 `;
+    if (transcript) {
+      userPrompt += `\nORIGINAL TRANSCRIPT (use this as the primary source material — adapt the messaging, angles, and key points for the brand above):\n${transcript.substring(0, 3000)}\n`;
+    }
   } else {
     userPrompt += '\nNo reference content provided. Create an original script from scratch based on the brand profile.\n';
   }
