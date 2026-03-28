@@ -347,6 +347,47 @@ select option{background:var(--card);color:var(--text)}
 
 /* ═══ Forge Glow Effect ═══ */
 .forge-glow{position:absolute;top:-200px;right:-200px;width:500px;height:500px;background:radial-gradient(circle,rgba(200,168,78,.04) 0%,transparent 70%);pointer-events:none;z-index:0}
+
+/* ═══ Creation Pipeline Modal ═══ */
+.creation-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(8px);z-index:550;display:none;align-items:center;justify-content:center}
+.creation-overlay.open{display:flex;animation:fadeIn .3s ease}
+.creation-modal{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);width:90%;max-width:580px;max-height:90vh;overflow-y:auto;box-shadow:var(--shadow-lg);padding:28px 32px}
+.creation-modal-title{font-family:var(--font-display);font-size:1.3rem;font-weight:700;text-align:center;margin-bottom:24px}
+.pipeline-steps{display:flex;flex-direction:column;gap:16px;margin-bottom:24px}
+.pipeline-step{display:flex;align-items:center;gap:14px;padding:14px 18px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);transition:var(--transition)}
+.pipeline-step.active{border-color:var(--gold);background:var(--gold-glow)}
+.pipeline-step.done{border-color:var(--green);background:rgba(46,204,113,.06)}
+.pipeline-step.error{border-color:var(--red);background:rgba(231,76,60,.06)}
+.pipeline-step-icon{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:.9rem}
+.pipeline-step.waiting .pipeline-step-icon{background:var(--border);color:var(--text3)}
+.pipeline-step.active .pipeline-step-icon{background:var(--gold-dim);color:var(--gold)}
+.pipeline-step.done .pipeline-step-icon{background:rgba(46,204,113,.15);color:var(--green)}
+.pipeline-step.error .pipeline-step-icon{background:rgba(231,76,60,.15);color:var(--red)}
+.pipeline-step-spinner{width:18px;height:18px;border:2px solid var(--border);border-top-color:var(--gold);border-radius:50%;animation:spin .8s linear infinite}
+.pipeline-step-info{flex:1}
+.pipeline-step-label{font-size:.85rem;font-weight:600;margin-bottom:2px}
+.pipeline-step-sub{font-size:.72rem;color:var(--text3)}
+.pipeline-step.active .pipeline-step-label{color:var(--gold)}
+.pipeline-step.done .pipeline-step-label{color:var(--green)}
+.pipeline-step.error .pipeline-step-label{color:var(--red)}
+
+/* Pipeline Video Preview */
+.pipeline-video-preview{margin-bottom:20px;border-radius:var(--radius-sm);overflow:hidden;background:var(--bg);border:1px solid var(--border)}
+.pipeline-video-preview video{width:100%;display:block;max-height:300px;object-fit:contain;background:#000}
+
+/* Pipeline Platform Selector */
+.pipeline-platforms{display:flex;gap:8px;justify-content:center;margin-bottom:16px;flex-wrap:wrap}
+.platform-toggle{padding:10px 20px;border-radius:var(--radius-sm);background:var(--bg);border:1px solid var(--border);color:var(--text2);cursor:pointer;transition:var(--transition);font-size:.82rem;font-weight:600;display:flex;align-items:center;gap:6px}
+.platform-toggle:hover{border-color:var(--gold);color:var(--text)}
+.platform-toggle.selected{border-color:var(--gold);background:var(--gold-dim);color:var(--gold)}
+.platform-toggle .check-mark{display:none;width:14px;height:14px}
+.platform-toggle.selected .check-mark{display:inline-block}
+
+/* Pipeline Actions */
+.pipeline-actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.pipeline-actions .btn{min-width:140px;justify-content:center}
+.pipeline-schedule-row{display:flex;gap:8px;align-items:center;justify-content:center;margin-top:12px}
+.pipeline-schedule-row input[type="datetime-local"]{width:auto;padding:8px 12px;font-size:.82rem}
 </style>
 </head>
 <body>
@@ -828,6 +869,93 @@ select option{background:var(--card);color:var(--text)}
     <div class="modal-footer">
       <button class="btn btn-outline" onclick="closeModal('modal-schedule')">Cancel</button>
       <button class="btn btn-gold" onclick="scheduleContent()">Schedule</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ Creation Pipeline Modal ═══ -->
+<div class="creation-overlay" id="creation-overlay">
+  <div class="creation-modal" id="creation-modal">
+    <div class="creation-modal-title" id="creation-title">Creating your content...</div>
+
+    <div class="pipeline-steps" id="pipeline-steps">
+      <div class="pipeline-step waiting" id="step-voiceover">
+        <div class="pipeline-step-icon">1</div>
+        <div class="pipeline-step-info">
+          <div class="pipeline-step-label">Generating voiceover</div>
+          <div class="pipeline-step-sub">ElevenLabs text-to-speech</div>
+        </div>
+      </div>
+      <div class="pipeline-step waiting" id="step-video">
+        <div class="pipeline-step-icon">2</div>
+        <div class="pipeline-step-info">
+          <div class="pipeline-step-label">Assembling video</div>
+          <div class="pipeline-step-sub">Pictory AI video creation</div>
+        </div>
+      </div>
+      <div class="pipeline-step waiting" id="step-ready">
+        <div class="pipeline-step-icon">3</div>
+        <div class="pipeline-step-info">
+          <div class="pipeline-step-label">Ready to post</div>
+          <div class="pipeline-step-sub">Choose platforms and publish</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Video preview (shown when done) -->
+    <div class="pipeline-video-preview" id="pipeline-video-preview" style="display:none">
+      <video id="pipeline-video" controls></video>
+    </div>
+
+    <!-- Platform selector (shown when done) -->
+    <div id="pipeline-publish-section" style="display:none">
+      <div style="text-align:center;font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);margin-bottom:10px">Select Platforms</div>
+      <div class="pipeline-platforms" id="pipeline-platforms">
+        <div class="platform-toggle" data-platform="tiktok" onclick="togglePlatform(this)">
+          <svg class="check-mark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+          TikTok
+        </div>
+        <div class="platform-toggle" data-platform="instagram" onclick="togglePlatform(this)">
+          <svg class="check-mark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+          Instagram
+        </div>
+        <div class="platform-toggle" data-platform="youtube" onclick="togglePlatform(this)">
+          <svg class="check-mark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+          YouTube
+        </div>
+        <div class="platform-toggle" data-platform="twitter" onclick="togglePlatform(this)">
+          <svg class="check-mark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+          X / Twitter
+        </div>
+      </div>
+
+      <div class="pipeline-actions">
+        <button class="btn btn-gold" onclick="pipelinePostNow()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          Post Now
+        </button>
+        <button class="btn btn-outline" onclick="showPipelineSchedule()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          Schedule
+        </button>
+        <button class="btn btn-ghost" onclick="closeCreationModal()">
+          Close
+        </button>
+      </div>
+
+      <div class="pipeline-schedule-row" id="pipeline-schedule-row" style="display:none">
+        <input type="datetime-local" id="pipeline-schedule-datetime">
+        <button class="btn btn-gold btn-sm" onclick="pipelineSchedule()">Confirm Schedule</button>
+      </div>
+    </div>
+
+    <!-- Error state -->
+    <div id="pipeline-error-section" style="display:none;text-align:center">
+      <div style="color:var(--red);margin-bottom:12px;font-size:.85rem" id="pipeline-error-msg"></div>
+      <div style="display:flex;gap:8px;justify-content:center">
+        <button class="btn btn-gold" onclick="retryPipeline()">Retry</button>
+        <button class="btn btn-ghost" onclick="closeCreationModal()">Close</button>
+      </div>
     </div>
   </div>
 </div>
@@ -1592,7 +1720,7 @@ async function approveScript() {
       method: 'PUT',
       body: { rebuilt_script: JSON.stringify(script), status: 'approved' }
     });
-    toast('Script approved and saved', 'success');
+    toast('Script approved — starting creation pipeline', 'success');
 
     // If this was a quick brand, ask to save it
     if (store._tempBrandId && store.activeBrand?.id === store._tempBrandId) {
@@ -1601,6 +1729,220 @@ async function approveScript() {
         prompt.innerHTML = '<div class="save-brand-prompt"><p>Want to save this as a brand for next time?</p><div class="btn-row"><button class="btn btn-gold btn-sm" onclick="keepTempBrand()">Yes, keep it</button><button class="btn btn-outline btn-sm" onclick="discardTempBrand()">No thanks</button></div></div>';
       }
     }
+
+    // Launch the creation pipeline
+    store._pipelineScript = script;
+    runCreationPipeline(script);
+  } catch (e) {}
+}
+
+// ─── Creation Pipeline ───
+function openCreationModal() {
+  // Reset all steps
+  document.querySelectorAll('.pipeline-step').forEach(s => { s.className = 'pipeline-step waiting'; });
+  document.querySelectorAll('.pipeline-step-icon').forEach((icon, i) => { icon.innerHTML = i + 1; });
+  document.getElementById('creation-title').textContent = 'Creating your content...';
+  document.getElementById('pipeline-video-preview').style.display = 'none';
+  document.getElementById('pipeline-publish-section').style.display = 'none';
+  document.getElementById('pipeline-error-section').style.display = 'none';
+  document.getElementById('pipeline-schedule-row').style.display = 'none';
+  // Deselect all platforms
+  document.querySelectorAll('.platform-toggle').forEach(p => p.classList.remove('selected'));
+  document.getElementById('creation-overlay').classList.add('open');
+}
+
+function closeCreationModal() {
+  document.getElementById('creation-overlay').classList.remove('open');
+}
+
+function setPipelineStep(stepId, state, subText) {
+  const step = document.getElementById(stepId);
+  if (!step) return;
+  step.className = 'pipeline-step ' + state;
+  const icon = step.querySelector('.pipeline-step-icon');
+  if (state === 'active') {
+    icon.innerHTML = '<div class="pipeline-step-spinner"></div>';
+  } else if (state === 'done') {
+    icon.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>';
+  } else if (state === 'error') {
+    icon.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
+  }
+  if (subText) {
+    step.querySelector('.pipeline-step-sub').textContent = subText;
+  }
+}
+
+async function runCreationPipeline(script) {
+  openCreationModal();
+  store._pipelineResult = {};
+
+  const brandId = store.activeBrand?.id;
+  const contentId = store.currentContent?.id;
+  const fullScript = (script.hook || '') + '\n\n' + (script.body || '') + '\n\n' + (script.cta || '');
+
+  // Step 1: Voiceover
+  setPipelineStep('step-voiceover', 'active', 'Generating voiceover...');
+  try {
+    const voResult = await api('/api/create/voiceover', {
+      method: 'POST',
+      body: {
+        script: fullScript,
+        content_id: contentId,
+        brand_id: brandId
+      }
+    });
+    store._pipelineResult.voiceover = voResult;
+    setPipelineStep('step-voiceover', 'done', 'Voiceover ready (' + formatBytes(voResult.size_bytes || 0) + ')');
+  } catch (e) {
+    setPipelineStep('step-voiceover', 'error', 'Voiceover failed: ' + (e.message || 'Unknown error'));
+    showPipelineError('Voiceover generation failed. Check that ELEVENLABS_API_KEY is configured.');
+    return;
+  }
+
+  // Step 2: Video assembly
+  setPipelineStep('step-video', 'active', 'Assembling video (this may take a few minutes)...');
+  try {
+    const vidResult = await api('/api/create/video', {
+      method: 'POST',
+      body: {
+        hook: script.hook || '',
+        body: script.body || '',
+        cta: script.cta || '',
+        title: store.currentScript?.title || 'Forge Video',
+        audio_url: store._pipelineResult.voiceover?.url || '',
+        content_id: contentId,
+        brand_id: brandId
+      }
+    });
+    store._pipelineResult.video = vidResult;
+    setPipelineStep('step-video', 'done', 'Video ready' + (vidResult.size_bytes ? ' (' + formatBytes(vidResult.size_bytes) + ')' : ''));
+  } catch (e) {
+    setPipelineStep('step-video', 'error', 'Video failed: ' + (e.message || 'Unknown error'));
+    showPipelineError('Video assembly failed. Check that PICTORY_CLIENT_ID and PICTORY_CLIENT_SECRET are configured.');
+    return;
+  }
+
+  // Step 3: Ready to post
+  setPipelineStep('step-ready', 'done', 'Your content is ready!');
+  document.getElementById('creation-title').textContent = 'Content ready!';
+
+  // Show video preview
+  const videoUrl = store._pipelineResult.video?.url || store._pipelineResult.video?.remote_url;
+  if (videoUrl) {
+    const videoEl = document.getElementById('pipeline-video');
+    videoEl.src = videoUrl;
+    document.getElementById('pipeline-video-preview').style.display = 'block';
+  }
+
+  // Show publish section
+  document.getElementById('pipeline-publish-section').style.display = 'block';
+
+  // Also update the preview panel
+  if (videoUrl) {
+    const previewContent = document.getElementById('preview-content');
+    previewContent.innerHTML = '<div class="preview-card"><div class="preview-phone" style="padding:0"><video src="' + escHtml(videoUrl) + '" controls style="width:100%;height:100%;object-fit:contain;background:#000"></video></div></div>' +
+      '<div class="preview-platform-icons"><div class="preview-platform-icon active" title="TikTok">TT</div><div class="preview-platform-icon" title="Instagram">IG</div><div class="preview-platform-icon" title="YouTube">YT</div><div class="preview-platform-icon" title="Twitter/X">X</div></div>';
+  }
+}
+
+function showPipelineError(msg) {
+  document.getElementById('pipeline-error-msg').textContent = msg;
+  document.getElementById('pipeline-error-section').style.display = 'block';
+}
+
+function retryPipeline() {
+  if (store._pipelineScript) {
+    runCreationPipeline(store._pipelineScript);
+  }
+}
+
+function togglePlatform(el) {
+  el.classList.toggle('selected');
+}
+
+function getSelectedPlatforms() {
+  return Array.from(document.querySelectorAll('.platform-toggle.selected')).map(el => el.dataset.platform);
+}
+
+async function pipelinePostNow() {
+  const platforms = getSelectedPlatforms();
+  if (!platforms.length) return toast('Select at least one platform', 'error');
+
+  const videoUrl = store._pipelineResult.video?.url || store._pipelineResult.video?.remote_url || '';
+  const script = store._pipelineScript || {};
+  const brandName = store.activeBrand?.name || 'Forge AI';
+
+  try {
+    const result = await api('/api/publish', {
+      method: 'POST',
+      body: {
+        platforms,
+        video_url: videoUrl,
+        caption: script.hook || '',
+        title: store.currentScript?.title || '',
+        brand_name: brandName,
+        content_id: store.currentContent?.id
+      }
+    });
+
+    // Show results
+    const successes = Object.entries(result).filter(([,v]) => v.success).map(([k]) => k);
+    const failures = Object.entries(result).filter(([,v]) => !v.success).map(([k,v]) => k + ': ' + v.error);
+
+    if (successes.length) toast('Posted to: ' + successes.join(', '), 'success');
+    if (failures.length) toast('Failed: ' + failures.join('; '), 'error');
+
+    if (store.currentContent) {
+      await api('/api/content/' + store.currentContent.id, { method: 'PUT', body: { status: 'posted' } });
+    }
+    closeCreationModal();
+  } catch (e) {}
+}
+
+function showPipelineSchedule() {
+  const platforms = getSelectedPlatforms();
+  if (!platforms.length) return toast('Select at least one platform first', 'error');
+  const row = document.getElementById('pipeline-schedule-row');
+  const now = new Date();
+  now.setHours(now.getHours() + 1, 0, 0, 0);
+  document.getElementById('pipeline-schedule-datetime').value = now.toISOString().slice(0, 16);
+  row.style.display = 'flex';
+}
+
+async function pipelineSchedule() {
+  const platforms = getSelectedPlatforms();
+  if (!platforms.length) return toast('Select at least one platform', 'error');
+  const scheduledFor = document.getElementById('pipeline-schedule-datetime').value;
+  if (!scheduledFor) return toast('Pick a date and time', 'error');
+
+  const videoUrl = store._pipelineResult.video?.url || store._pipelineResult.video?.remote_url || '';
+  const script = store._pipelineScript || {};
+  const brandName = store.activeBrand?.name || 'Forge AI';
+
+  try {
+    const result = await api('/api/publish', {
+      method: 'POST',
+      body: {
+        platforms,
+        video_url: videoUrl,
+        caption: script.hook || '',
+        title: store.currentScript?.title || '',
+        brand_name: brandName,
+        content_id: store.currentContent?.id,
+        scheduled_for: scheduledFor
+      }
+    });
+
+    const successes = Object.entries(result).filter(([,v]) => v.success).map(([k]) => k);
+    const failures = Object.entries(result).filter(([,v]) => !v.success).map(([k,v]) => k + ': ' + v.error);
+
+    if (successes.length) toast('Scheduled on: ' + successes.join(', '), 'success');
+    if (failures.length) toast('Failed: ' + failures.join('; '), 'error');
+
+    if (store.currentContent) {
+      await api('/api/content/' + store.currentContent.id, { method: 'PUT', body: { status: 'scheduled' } });
+    }
+    closeCreationModal();
   } catch (e) {}
 }
 

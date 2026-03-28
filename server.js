@@ -8,6 +8,9 @@ const database = require('./database');
 const claude = require('./services/claude');
 const extract = require('./services/extract');
 const queue = require('./services/queue');
+const elevenlabs = require('./services/elevenlabs');
+const pictory = require('./services/pictory');
+const late = require('./services/late');
 
 // Wrap database helpers into namespaced objects for route clarity
 const brands = {
@@ -394,17 +397,113 @@ app.post('/api/queue/:id/retry', (req, res) => {
   }
 });
 
+// ─── Create: Voiceover (ElevenLabs) ───
+app.post('/api/create/voiceover', async (req, res) => {
+  try {
+    const { script, voice_id, content_id, brand_id } = req.body;
+    if (!script) return res.status(400).json(fail('script is required'));
+
+    const result = await elevenlabs.generateVoiceover(script, { voice_id });
+    if (!result.success) return res.status(502).json(fail(result.error));
+
+    // Save as asset
+    if (brand_id) {
+      assets.create({
+        brand_id,
+        content_id: content_id || null,
+        type: 'audio',
+        url: result.url,
+        filename: result.filename,
+        size_bytes: result.size_bytes,
+      });
+    }
+
+    res.json(ok(result));
+  } catch (e) {
+    res.status(500).json(fail(e.message));
+  }
+});
+
+// ─── Create: Video (Pictory) ───
+app.post('/api/create/video', async (req, res) => {
+  try {
+    const { hook, body: bodyText, cta, title, audio_url, content_id, brand_id } = req.body;
+    if (!hook && !bodyText && !cta) return res.status(400).json(fail('Script content required'));
+
+    // Build full audio URL for Pictory
+    let fullAudioUrl = audio_url;
+    if (audio_url && audio_url.startsWith('/')) {
+      const host = `${req.protocol}://${req.get('host')}`;
+      fullAudioUrl = `${host}${audio_url}`;
+    }
+
+    const result = await pictory.createVideo(null, {
+      hook, body: bodyText, cta, title,
+      audio_url: fullAudioUrl,
+    });
+
+    if (!result.success) return res.status(502).json(fail(result.error));
+
+    // Save as asset
+    if (brand_id && result.url) {
+      assets.create({
+        brand_id,
+        content_id: content_id || null,
+        type: 'video',
+        url: result.url,
+        filename: result.filename,
+        size_bytes: result.size_bytes,
+      });
+    }
+
+    res.json(ok(result));
+  } catch (e) {
+    res.status(500).json(fail(e.message));
+  }
+});
+
+// ─── Publish (Late API) ───
+app.post('/api/publish', async (req, res) => {
+  try {
+    const { platforms, video_url, caption, title, brand_name, content_id, scheduled_for } = req.body;
+    if (!platforms || !platforms.length) return res.status(400).json(fail('platforms array required'));
+
+    let fullVideoUrl = video_url;
+    if (video_url && video_url.startsWith('/')) {
+      const host = `${req.protocol}://${req.get('host')}`;
+      fullVideoUrl = `${host}${video_url}`;
+    }
+
+    const contentData = { video_url: fullVideoUrl, caption, title, brand_name };
+    let results;
+
+    if (scheduled_for) {
+      results = await late.schedulePost(platforms, contentData, scheduled_for);
+      // Save schedule entries
+      if (content_id) {
+        for (const p of platforms) {
+          schedule.create({ content_id, platform: p, scheduled_for });
+        }
+      }
+    } else {
+      results = await late.publish(platforms, contentData);
+    }
+
+    res.json(ok(results));
+  } catch (e) {
+    res.status(500).json(fail(e.message));
+  }
+});
+
 // ─── Coming Soon Endpoints (501) ───
 const comingSoon = (name) => (req, res) => {
   res.status(501).json({ success: false, error: `${name} is coming soon`, coming_soon: true });
 };
 
-app.all('/api/create/voiceover', comingSoon('Voiceover Creation'));
 app.all('/api/create/avatar', comingSoon('Avatar Creation'));
 app.all('/api/create/text-overlay', comingSoon('Text Overlay Creation'));
 app.all('/api/create/graphic', comingSoon('Graphic Creation'));
 app.all('/api/repurpose', comingSoon('Repurpose Engine'));
-app.all('/api/publish', comingSoon('Publishing'));
 app.all('/api/trends', comingSoon('Trend Scanner'));
 app.all('/api/analytics', comingSoon('Analytics'));
 app.all('/api/research', comingSoon('Niche Research'));
