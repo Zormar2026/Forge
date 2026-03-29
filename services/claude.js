@@ -36,6 +36,8 @@ async function rebuildForBrand(intelligence, brand, options = {}) {
 
   let userPrompt = `Build a short-form video script for this brand.
 
+CRITICAL LENGTH CONSTRAINT: The TOTAL script (hook + body + cta combined) must be 120-150 words maximum. This targets 60-75 seconds of speaking time — optimal for TikTok/Reels/Shorts. Do NOT exceed 150 words total. Hook should be 10-15 words. Body should be 80-110 words. CTA should be 15-25 words.
+
 BRAND PROFILE:
 - Name: ${brand.name || 'Unknown'}
 - Niche: ${brand.niche || 'General'}
@@ -89,13 +91,13 @@ VIRAL REFERENCE (adapt this proven content for the brand above):
   }
 
   userPrompt += `
-Respond with ONLY this JSON structure:
+Respond with ONLY this JSON structure (TOTAL must be 120-150 words across hook+body+cta):
 {
-  "hook": "The opening line (first 1-3 seconds, must stop the scroll)",
-  "body": "The main script body (problem, agitation, solution/value)",
-  "cta": "The call to action matching the funnel stage",
+  "hook": "10-15 words — the opening line that stops the scroll",
+  "body": "80-110 words — the main script body (problem, agitation, solution/value)",
+  "cta": "15-25 words — the call to action matching the funnel stage",
   "funnel_stage": "${funnel_stage}",
-  "estimated_length": "Estimated video length in seconds",
+  "estimated_length": "60-75",
   "title": "A short internal title for this content piece"
 }`;
 

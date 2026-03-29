@@ -1802,6 +1802,13 @@ async function runCreationPipeline(script) {
   // Step 2: Video assembly
   setPipelineStep('step-video', 'active', 'Assembling video (this may take a few minutes)...');
   try {
+    // Build keywords from intelligence for better stock footage
+    const intel = store._intelligence || {};
+    const keywords = [
+      ...(intel.key_topics || []),
+      ...(intel.emotional_triggers || []),
+    ].filter(Boolean).slice(0, 10);
+
     const vidResult = await api('/api/create/video', {
       method: 'POST',
       body: {
@@ -1811,7 +1818,8 @@ async function runCreationPipeline(script) {
         title: store.currentScript?.title || 'Forge Video',
         audio_url: store._pipelineResult.voiceover?.url || '',
         content_id: contentId,
-        brand_id: brandId
+        brand_id: brandId,
+        keywords
       }
     });
     store._pipelineResult.video = vidResult;

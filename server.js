@@ -427,19 +427,23 @@ app.post('/api/create/voiceover', async (req, res) => {
 // ─── Create: Video (Pictory) ───
 app.post('/api/create/video', async (req, res) => {
   try {
-    const { hook, body: bodyText, cta, title, audio_url, content_id, brand_id } = req.body;
+    const { hook, body: bodyText, cta, title, audio_url, content_id, brand_id, keywords } = req.body;
     if (!hook && !bodyText && !cta) return res.status(400).json(fail('Script content required'));
 
-    // Build full audio URL for Pictory
+    // Build full public audio URL for Pictory (local paths are unreachable externally)
     let fullAudioUrl = audio_url;
     if (audio_url && audio_url.startsWith('/')) {
-      const host = `${req.protocol}://${req.get('host')}`;
+      const host = process.env.PUBLIC_URL || `${req.protocol}://${req.get('host')}`;
       fullAudioUrl = `${host}${audio_url}`;
     }
+
+    console.log(`[Video] Audio URL for Pictory: ${fullAudioUrl}`);
+    console.log(`[Video] Keywords: ${(keywords || []).join(', ')}`);
 
     const result = await pictory.createVideo(null, {
       hook, body: bodyText, cta, title,
       audio_url: fullAudioUrl,
+      keywords: keywords || [],
     });
 
     if (!result.success) return res.status(502).json(fail(result.error));
